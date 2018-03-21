@@ -4,9 +4,19 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
 var index = require('./routes/index');
 var users = require('./routes/users');
+
+var fs = require("fs");
+//connect with database using mongoose
+var mongoose = require("mongoose");
+mongoose.connect("mongodb://localhost:27017/souq");
+
+
+fs.readdirSync(path.join(__dirname,"models")).forEach(function(filename){
+    require('./models/'+filename);
+});
+
 
 var app = express();
 
