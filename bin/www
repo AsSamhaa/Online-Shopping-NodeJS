@@ -5,9 +5,8 @@
  */
 
 var app = require('../app');
-var debug = require('debug')('online-shopping:server');
-var express = require('express');
-// var http = require('http');
+var debug = require('debug')('temp:server');
+var http = require('http');
 
 /**
  * Get port from environment and store in Express.
@@ -20,9 +19,7 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-// var server = http.createServer(app);
-// var server = express(app);
-var server = app;
+var server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -89,6 +86,5 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  console.log(bind);
   debug('Listening on ' + bind);
 }
