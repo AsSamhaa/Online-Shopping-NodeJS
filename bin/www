@@ -7,13 +7,21 @@
 var app = require('../app');
 var debug = require('debug')('online-shopping:server');
 var express = require('express');
+const https= require('https');
+const fs = require('fs');
+var graph=require('fbgraph');
+var {google}=require('googleapis');
+var OAuth2 = google.auth.OAuth2;
+var plus = google.plus('v1');
+var gmail = google.gmail('v1');
+var jwt = require('jsonwebtoken');
 // var http = require('http');
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || '9010');
 app.set('port', port);
 
 /**
@@ -22,7 +30,16 @@ app.set('port', port);
 
 // var server = http.createServer(app);
 // var server = express(app);
-var server = app;
+
+//****************************** make server request https******************************** */
+
+var options = {
+  key: fs.readFileSync("../server.key"),
+  cert: fs.readFileSync("../server.crt")
+};
+
+var server = https.createServer(options, app);
+// var server = app;
 
 /**
  * Listen on provided port, on all network interfaces.
