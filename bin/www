@@ -30,15 +30,13 @@ app.set('port', port);
 
 // var server = http.createServer(app);
 // var server = express(app);
-
-//****************************** make server request https******************************** */
-
 var options = {
-  key: fs.readFileSync("../server.key"),
-  cert: fs.readFileSync("../server.crt")
+  key: fs.readFileSync('server.key'),
+  cert: fs.readFileSync('server.crt')
 };
 
 var server = https.createServer(options, app);
+
 // var server = app;
 
 /**
