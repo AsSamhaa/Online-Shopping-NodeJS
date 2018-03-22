@@ -1,5 +1,5 @@
 var express=require('express');
-var expressserver = express();
+var expressserver = express.Router();
 const https= require('https');
 const fs = require('fs');
 var graph=require('fbgraph');
@@ -18,19 +18,12 @@ expressserver.use(function(req,resp,next){
     resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE")
     next();
   });
-  //****************************** make server request https******************************** */
-
-var options = {
-    key: fs.readFileSync("../server.key"),
-    cert: fs.readFileSync("../server.crt")
-  };
-
-  var server = https.createServer(options, expressserver);
+  
 
 //**************************************App id****************************************** */
 
         var authclient=new OAuth2(
-            '448503575381-qc1f0852ir0m5vb43ic4066g8f03155k.apps.googleusercontent.com','p_qMifEKigRyY2hb1lr8e1NX','https://localhost:9010/goback'
+            '448503575381-qc1f0852ir0m5vb43ic4066g8f03155k.apps.googleusercontent.com','p_qMifEKigRyY2hb1lr8e1NX','https://localhost:9010/socialmedia/goback'
         )
 
 //*********************************FaceBook******************************************* */
@@ -40,10 +33,10 @@ var options = {
         // get authorization url
         var authUrl = graph.getOauthUrl({
             "client_id":  '1612080208881297'
-        , "redirect_uri":  'https://localhost:9010/fbcallback',
+        , "redirect_uri":  'https://localhost:9010/socialmedia/fbcallback',
         scope:['public_profile','email']
         });
-
+    //response.send("<a href='"+authUrl+"'>Login With Facebook</a>");
     response.send(authUrl);
 });
 
@@ -53,7 +46,7 @@ expressserver.get('/fbcallback',function(request,response){
         // get Code from QueryString and send new request to get AccessToken
             graph.authorize({
                 "client_id":      "1612080208881297"
-            , "redirect_uri":   "https://localhost:9010/fbcallback"
+            , "redirect_uri":   "https://localhost:9010/socialmedia/fbcallback"
             , "client_secret":  "a95cf2ac98bc976e0e21841ad3f6cb91"
             , "code":           request.query.code
             },function (err, facebookRes) {
@@ -93,8 +86,8 @@ expressserver.get('/fbcallback',function(request,response){
                 access_type:'offline',
                 scope:scopes
             });
-
-      resp.send(url);
+    //resp.send("<a href='"+url+"'>Login With Google</a>");
+       resp.send(url);
 });
 
 //*******************************************Google Callback******************************** */

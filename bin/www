@@ -20,7 +20,16 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+// var server = http.createServer(app);
+// var server = express(app);
+var options = {
+  key: fs.readFileSync('server.key'),
+  cert: fs.readFileSync('server.crt')
+};
+
+var server = https.createServer(options, app);
+
+// var server = app;
 
 /**
  * Listen on provided port, on all network interfaces.
