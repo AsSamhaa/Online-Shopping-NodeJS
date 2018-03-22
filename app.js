@@ -7,6 +7,8 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var socialmedia = require('./routes/socialmedia');
+var auth = require('./routes/auth');
+var jwt = require('jsonwebtoken');
 
 var fs = require("fs");
 //connect with database using mongoose
@@ -29,9 +31,60 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+
+//**********************************restful api**********************************************************/
+app.use(function(req,resp,next){
+  resp.header("Access-Control-Allow-Origin","*");
+  resp.header("Access-Control-Allow-Headers","Content-Type,Authorization");
+  resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE")
+  next();
+});
+//**************************************************authentication middle ware************************************************** */
+
+app.use(function(req,res,next){
+  //get auth header value
+  const bearerheader=req.headers['authorization'];
+  // console.log(bearerheader);
+  if(typeof bearerheader !== "undefined"){
+    const bearertoken=bearerheader;
+    //set token
+    req.token=bearertoken;
+    req.user={};
+    console.log('dddd');
+
+    jwt.verify(req.token,'secretkey',function(err,authdata){
+      if(err)
+      {
+          res.send(err);
+      }else{
+          //check user data
+          //select this user from db and check if authdata
+          req.user.id=authdata.user.id;
+          // req.redirect('/users');
+          // res.json(req.user);
+          //authdata.user.id
+          next();
+        }
+      
+  });
+   
+    
+}else{
+  console.log('header not exist');
+  res.send('else');
+
+}
+
+// res.send('yarab');
+});
+
+
 app.use('/', index);
+app.use('/auth',auth);
 app.use('/users', users);
 app.use('/socialmedia',socialmedia);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -39,6 +92,7 @@ app.use(function(req, res, next) {
   err.status = 404;
   next(err);
 });
+
 
 // error handler
 app.use(function(err, req, res, next) {

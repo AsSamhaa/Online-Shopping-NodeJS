@@ -6,4 +6,8 @@ router.get('/', function(req, res, next) {
 	res.send('index');
 });
 
+router.get('/fburl',function(req,res){
+
+});
+
 module.exports = router;
