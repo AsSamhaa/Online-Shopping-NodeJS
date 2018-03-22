@@ -4,10 +4,10 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var index = require('./routes/index');
+var fs = require("fs");
+var products = require('./routes/products');
 var users = require('./routes/users');
 
-var fs = require("fs");
 //connect with database using mongoose
 var mongoose = require("mongoose");
 mongoose.connect("mongodb://localhost:27017/souq");
@@ -32,7 +32,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
+app.use('/products', products);
 app.use('/users', users);
 
 // catch 404 and forward to error handler
@@ -50,7 +50,8 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  // res.render('error');
+  res.send(res.locals);
 });
 
 module.exports = app;
