@@ -6,25 +6,26 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var fs = require("fs");
 
+// var auth = require('./routes/auth');
+var socialmedia = require('./routes/socialmedia');
 var products = require('./routes/products');
 var users = require('./routes/users');
-var socialmedia = require('./routes/socialmedia');
 
 //connect with database using mongoose
 var mongoose = require("mongoose");
 mongoose.connect("mongodb://localhost:27017/souq");
 
-require('./models/user');
-require('./models/seller');
-require('./models/subcategory');
-require('./models/product');
-require('./models/order');
+// require('./models/user');
+// require('./models/seller');
+// require('./models/subcategory');
+// require('./models/product');
+// require('./models/order');
 
 
 //not Working !!
-// fs.readdirSync(path.join(__dirname,"models")).forEach(function(filename){
-//     require('./models/'+filename);
-// });
+fs.readdirSync(path.join(__dirname,"models")).forEach(function(filename){
+    require('./models/'+filename);
+});
 
 
 
@@ -42,6 +43,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// app.use(auth);
 app.use('/products', products);
 app.use('/users', users);
 app.use('/socialmedia',socialmedia);
