@@ -77,7 +77,7 @@ app.use(function(req,res,next){
           //set token
           req.token=bearertoken;
           req.user={};
-          console.log('dddd');
+          console.log('before verify token');
 
       jwt.verify(req.token,'secretkey',function(err,authdata){
           if(err)

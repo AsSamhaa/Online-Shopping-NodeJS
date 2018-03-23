@@ -70,16 +70,30 @@ expressserver.get('/fbcallback',function(request,response){
                     user.socialuser=true;
                     user.fbid=result.id;
                      
-                    // console.log(result.id);
-                   
                     
                    
-                    UserModel.findOne({email:user.email},function(err,userdata){
+                    UserModel.findOne({$and:[{email:user.email},{facebookId:user.fbid}]},function(err,userdata){
                       
                         if(userdata !== null)
                         {
-                            //update user access token
-                            
+                                //update user access token
+                                UserModel.update({$and:[{email:user.email},{facebookId:user.fbid}]},{"$set":{name:user.name,image:user.image,accessToken:user.token}},function(err,data){
+                                    if(!err)
+                                    {
+                                        jwt.sign({user:user},'secretkey',function(err,token){
+                                                            
+                                            response.json({token:token,user:user});
+
+                                        });
+
+                                    }else
+                                    {
+                                        res.json({'err':'not a user'});
+
+                                    }
+                                    
+                                });
+
                         }else
                         {
                            //add user
@@ -88,7 +102,7 @@ expressserver.get('/fbcallback',function(request,response){
                                 name:user.name,
                                 email:user.email,
                                 image:user.image,
-                                facebookMail:'true',
+                                facebookId:user.fbid,
                                 accessToken:user.token
 
                               });
@@ -172,16 +186,33 @@ expressserver.get('/fbcallback',function(request,response){
                             user.email=res.data.emails[0].value;   
                             user.googleuser=true;               
                             user.socialuser=true;
-                            user.id=res.data.id;
+                            user.goid=res.data.id;
                             
-                            response.json(user);
                             
-                            /*
-                            UserModel.findOne({email:user.email},function(err,userdata){
+                            
+                            UserModel.findOne({$and:[{email:user.email},{gmailId:user.goid}]},function(err,userdata){
                       
                                 if(userdata !== null)
                                 {
-                                    //update user access token
+                                    
+                                            //update user access token
+                                        UserModel.update({$and:[{email:user.email},{gmailId:user.goid}]},{"$set":{name:user.name,image:user.image,accessToken:user.token}},function(err,data){
+                                            if(!err)
+                                            {
+                                                jwt.sign({user:user},'secretkey',function(err,token){
+                                                                    
+                                                    response.json({token:token,user:user});
+
+                                                });
+
+                                            }else
+                                            {
+                                                res.json({'err':'not a user'});
+
+                                            }
+                                            
+                                        });
+
                                     
                                 }else
                                 {
@@ -191,7 +222,7 @@ expressserver.get('/fbcallback',function(request,response){
                                         name:user.name,
                                         email:user.email,
                                         image:user.image,
-                                        gmail:'true',
+                                        gmailId:user.goid,
                                         accessToken:user.token,
                                         refreshToken:user.refreshtoken
         
@@ -216,7 +247,7 @@ expressserver.get('/fbcallback',function(request,response){
                                 }
         
                             });
-                            */
+                            
 
                         });
 
