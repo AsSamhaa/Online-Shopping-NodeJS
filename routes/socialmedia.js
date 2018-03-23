@@ -8,7 +8,8 @@ var OAuth2 = google.auth.OAuth2;
 var plus = google.plus('v1');
 var gmail = google.gmail('v1');
 var jwt = require('jsonwebtoken');
-
+var mongoose = require("mongoose");
+var UserModel = mongoose.model("User");
 
 
 //**********************************restful api**********************************************************/
@@ -42,10 +43,12 @@ expressserver.use(function(req,resp,next){
 
 //*************************************Facebook Callback******************************** */
 expressserver.get('/fbcallback',function(request,response){
-        var user={};    
+         
+    var user={};    
         // get Code from QueryString and send new request to get AccessToken
             graph.authorize({
-                "client_id":      "1612080208881297"
+
+             "client_id":      "1612080208881297"
             , "redirect_uri":   "https://localhost:9010/socialmedia/fbcallback"
             , "client_secret":  "a95cf2ac98bc976e0e21841ad3f6cb91"
             , "code":           request.query.code
@@ -56,12 +59,21 @@ expressserver.get('/fbcallback',function(request,response){
                 graph.setAccessToken(user.token);
                 // GET User Profile Data -- URI /user_id
                 graph.get("/me?fields=id,name,picture.width(300),email",function(err,result){
-            
+               
+                    //**********save user in database************************ */
                     user.image=result.picture.data.url;
                     user.name=result.name;
                     user.email=result.email;
-                //**********save user in database************************ */
-                    response.send(user);
+                    user.facebookuser=true;
+                    user.socialuser=true;
+                   
+               //send user token
+                jwt.sign({user:user},'secretkey',function(err,token){
+                                
+                    response.json({token:token});
+
+                });
+                    // response.send(user);
 
         });
 
@@ -93,10 +105,10 @@ expressserver.get('/fbcallback',function(request,response){
 //*******************************************Google Callback******************************** */
   expressserver.get('/goback',function(request,response){
 
-      var user={};
-    //*******************************Get Acess Token************************* */
-    authclient.getToken(request.query.code,function(err,token){
-    
+        var user={};
+        //*******************************Get Acess Token************************* */
+        authclient.getToken(request.query.code,function(err,token){
+        
           if(!err)
             {    
                     //setcredentails on access token and save it in file
@@ -117,15 +129,18 @@ expressserver.get('/fbcallback',function(request,response){
                             //***********************add use to db*****************
                             user.name=res.data.displayName;
                             user.image=res.data.image.url;
-                            user.email=res.data.emails[0].value;                  
+                            user.email=res.data.emails[0].value;   
+                            user.googleuser=true;               
+                            user.socialuser=true;
+                            //send token 
+                            jwt.sign({user:user},'secretkey',function(err,token){
+                            
+                                response.json({token:token});
 
-                                jwt.sign({user:user},'secretkey',function(err,token){
-                                
-                                    response.json({token:token});
-
-                                });
+                            });
 
                         });
+
             }
         });
 

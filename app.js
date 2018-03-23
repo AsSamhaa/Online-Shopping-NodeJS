@@ -4,21 +4,35 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+
+//connect with database using mongoose
+var mongoose = require("mongoose");
+mongoose.connect("mongodb://localhost:27017/souq");
+
+require('./models/user');
+require('./models/seller');
+require('./models/subcategory');
+require('./models/product');
+require('./models/order');
+
+
 var index = require('./routes/index');
 var users = require('./routes/users');
 var socialmedia = require('./routes/socialmedia');
 var auth = require('./routes/auth');
 var jwt = require('jsonwebtoken');
-
 var fs = require("fs");
-//connect with database using mongoose
-var mongoose = require("mongoose");
-mongoose.connect("mongodb://localhost:27017/souq");
+
+var UserModel = mongoose.model("User");
+var SellerModel = mongoose.model("Seller");
 
 
-fs.readdirSync(path.join(__dirname,"models")).forEach(function(filename){
-    require('./models/'+filename);
-});
+
+//not Working !!
+// fs.readdirSync(path.join(__dirname,"models")).forEach(function(filename){
+//     require('./models/'+filename);
+// });
+
 
 
 var app = express();
@@ -36,47 +50,98 @@ app.use(express.static(path.join(__dirname, 'public')));
 //**********************************restful api**********************************************************/
 app.use(function(req,resp,next){
   resp.header("Access-Control-Allow-Origin","*");
-  resp.header("Access-Control-Allow-Headers","Content-Type,Authorization");
+  resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,Email,Password");
   resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE")
   next();
 });
-//**************************************************authentication middle ware************************************************** */
 
+//**************************authentication middle ware************************************************** */
 app.use(function(req,res,next){
-  //get auth header value
-  const bearerheader=req.headers['authorization'];
-  // console.log(bearerheader);
-  if(typeof bearerheader !== "undefined"){
-    const bearertoken=bearerheader;
-    //set token
-    req.token=bearertoken;
-    req.user={};
-    console.log('dddd');
+    //get auth header value
 
-    jwt.verify(req.token,'secretkey',function(err,authdata){
-      if(err)
-      {
-          res.send(err);
-      }else{
-          //check user data
-          //select this user from db and check if authdata
-          req.user.id=authdata.user.id;
-          // req.redirect('/users');
-          // res.json(req.user);
-          //authdata.user.id
-          next();
-        }
+    const bearerheader=req.headers['authorization'];
+    // console.log(bearerheader);
+
+  if(typeof bearerheader !== "undefined"){
+
+          const bearertoken=bearerheader;
+          //set token
+          req.token=bearertoken;
+          req.user={};
+          console.log('dddd');
+
+      jwt.verify(req.token,'secretkey',function(err,authdata){
+          if(err)
+          {
+              res.send(err);
+
+          }else{
+
+              //check user data
+              //select this user from db and check if authdata
+              // req.user.id=authdata.user.id;
+
+                  if(authdata.user.seller)
+                  {
+                      //check in seller module 
+                      SellerModel.find({$and:[{email:authdata.user.email},{password:authdata.user.pass}]},function(err,userdata){
+                          req.user.isSeller=true;
+                          req.user.isAuthenticated=true;
+                          req.user.id=userdata._id;
+                      });
+                        // req.user.age=authdata.user.name;
+
+                  }else if(authdata.user.isuser)
+                  {
+                        //check in users model
+                        UserModel.find({$and:[{email:authdata.user.email},{password:authdata.user.pass}]},function(err,userdata){
+                          req.user.isUser=true;
+                          req.user.isAuthenticated=true;
+                          req.user.id=userdata._id;
+                        });
+                      
+                    
+                  }else if(authdata.user.socialuser)
+                    {
+                          //check in users model
+                          if(authdata.user.facebookuser)
+                            {
+                                  //check in users model
+                                  UserModel.find({$and:[{email:authdata.user.email},{password:authdata.user.pass}]},function(err,userdata){
+                                    req.user.facebookUser=true;
+                                    req.user.isAuthenticated=true;
+                                    req.user.id=userdata._id;
+                                  });
+
+                            }else
+                            {
+                                  //googleuser
+                                  //check in users model
+                                  UserModel.find({$and:[{email:authdata.user.email},{password:authdata.user.pass}]},function(err,userdata){
+                                    req.user.googleUser=true;
+                                    req.user.isAuthenticated=true;
+                                    req.user.id=userdata._id;
+                                  });
+                                
+                            }
+
+
+                   }
+                  
+              
+            }
+
+          next();     
+    });
+
+    // next();
       
-  });
-   
-    
 }else{
   console.log('header not exist');
-  res.send('else');
-
+   next();
 }
 
-// res.send('yarab');
+
 });
 
 
