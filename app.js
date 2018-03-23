@@ -59,7 +59,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 //**********************************restful api**********************************************************/
 app.use(function(req,resp,next){
   resp.header("Access-Control-Allow-Origin","*");
-  resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,Email,Password");
+  resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,email,password");
   resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE")
   next();
 });
