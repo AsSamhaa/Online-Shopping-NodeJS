@@ -12,9 +12,9 @@ router.get('/:id?', function(req, res, next) {
             response.json(result);
         });
     } else {
-        productModel.find({},function(err,result){
+        productModel.find({}, function(err,result) {
             response.json(result);
-        })
+        });
     }
 });
 
@@ -32,7 +32,7 @@ router.post('/add', function(req, res, next) {
         //orderId:
         //userId:
     })
-    product.save(function(err,result){
+    product.save(function(err, result){
         if(!err){
             // response.send(request.body)
             response.json({result:'product added'});
@@ -49,14 +49,23 @@ router.post('/edit', function(req, res, next) {
     //response.send(request.body)
     console.log(request.body.productName);
     console.log(request.params.id);
-    productModel.update({_id:id},{"$set":{productName:request.body.productName,productPrice:request.body.productPrice,description:request.body.productDesc,productImage:request.body.image}},function(err,result){
-         if(!err){
-             response.json({result:"product edited"});
-         }else{
-             console.log(err)
-             response.json({result:"failed to edit"});
-         }
-     })
+    productModel.update(
+        { _id: id },
+        { "$set": {
+                productName: request.body.productName,
+                productPrice: request.body.productPrice,
+                description: request.body.productDesc,
+                productImage: request.body.image
+            }
+        },
+        function(err,result) {
+            if (!err) {
+                response.json({result:"product edited"});
+            } else {
+                console.log(err)
+                response.json({result:"failed to edit"});
+            }
+        });
 });
 
 /* delete product */
