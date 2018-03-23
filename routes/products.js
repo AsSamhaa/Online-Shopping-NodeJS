@@ -7,11 +7,11 @@ var router = express.Router();
 /* get product info */
 router.get('/:id?', function(req, res, next) {
     if(request.params.id){
-        var id = request.params.id
-        productModel.findOne({_id:id},function(err,result){
+        var id = request.params.id;
+        productModel.findOne({ _id: id }, function(err, result) {
             response.json(result);
-        })
-    }else{
+        });
+    } else {
         productModel.find({},function(err,result){
             response.json(result);
         })

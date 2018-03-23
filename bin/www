@@ -5,8 +5,9 @@
  */
 
 var app = require('../app');
+var fs = require('fs');
 var debug = require('debug')('temp:server');
-var http = require('http');
+var https = require('https');
 
 
 /**
