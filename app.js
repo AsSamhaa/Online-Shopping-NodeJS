@@ -11,11 +11,15 @@ var fs = require("fs");
 var mongoose = require("mongoose");
 mongoose.connect("mongodb://localhost:27017/souq");
 
-require('./models/user');
-require('./models/seller');
-require('./models/subcategory');
-require('./models/product');
-require('./models/order');
+// require('./models/user');
+// require('./models/seller');
+// require('./models/subcategory');
+// require('./models/product');
+// require('./models/order');
+
+fs.readdirSync(path.join(__dirname,"models")).forEach(function(filename){
+    require('./models/'+filename);
+});
 
 
 var index = require('./routes/index');
