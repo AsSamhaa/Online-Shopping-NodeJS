@@ -1,4 +1,4 @@
-var express=require('express');
+var express = require('express');
 var expressserver = express.Router();
 const https= require('https');
 const fs = require('fs');
@@ -60,22 +60,55 @@ expressserver.get('/fbcallback',function(request,response){
                 // GET User Profile Data -- URI /user_id
                 graph.get("/me?fields=id,name,picture.width(300),email",function(err,result){
                
-                    //**********save user in database************************ */
+                //**********save user in database************************ */
+
                     user.image=result.picture.data.url;
                     user.name=result.name;
                     user.email=result.email;
                     user.facebookuser=true;
                     user.socialuser=true;
-                   
-               //send user token
-                jwt.sign({user:user},'secretkey',function(err,token){
-                                
-                    response.json({token:token});
+                    
+                    UserModel.findOne({email:user.email},function(err,userdata){
+                      
+                        if(userdata !== null)
+                        {
+                            //update user access token
+                            
+                        }else
+                        {
+                           //add user
+
+                            var adduser=new UserModel({
+                                name:user.name,
+                                email:user.email,
+                                image:user.image,
+                                facebookMail:'true',
+                                accessToken:user.token
+
+                              });
+
+                            adduser.save(function(err,doc){
+                                    if(!err)
+                                    {
+                                        //send user token
+                                            jwt.sign({user:user},'secretkey',function(err,token){
+                                                            
+                                                response.json({token:token,user:user});
+
+                                            });
+
+                                    }else{
+                                        res.json({'err':'not a user'});
+                                    }
+                            
+                               });
+                                   
+                        }
+
+                    });
+                    
 
                 });
-                    // response.send(user);
-
-        });
 
         });
     
@@ -132,11 +165,45 @@ expressserver.get('/fbcallback',function(request,response){
                             user.email=res.data.emails[0].value;   
                             user.googleuser=true;               
                             user.socialuser=true;
-                            //send token 
-                            jwt.sign({user:user},'secretkey',function(err,token){
                             
-                                response.json({token:token});
-
+                            UserModel.findOne({email:user.email},function(err,userdata){
+                      
+                                if(userdata !== null)
+                                {
+                                    //update user access token
+                                    
+                                }else
+                                {
+                                   //add user
+        
+                                    var adduser=new UserModel({
+                                        name:user.name,
+                                        email:user.email,
+                                        image:user.image,
+                                        gmail:'true',
+                                        accessToken:user.token,
+                                        refreshToken:user.refreshtoken
+        
+                                      });
+        
+                                    adduser.save(function(err,doc){
+                                                if(!err)
+                                                {
+                                                    //send user token
+                                                        jwt.sign({user:user},'secretkey',function(err,token){
+                                                                        
+                                                            response.json({token:token,user:user});
+            
+                                                        });
+            
+                                                }else{
+                                                    res.json({'err':'not a user'});
+                                                }
+                                        
+                                           });
+                                           
+                                }
+        
                             });
 
                         });

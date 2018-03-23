@@ -1,13 +1,13 @@
 var express = require('express');
+var Product = require('../models/user');
+
 var router = express.Router();
+
 // start editing 
-var bodyParser = require("body-parser")
-var JSONParser = bodyParser.json();
-var urlEncodedParsermid = bodyParser.urlencoded();
-var mongoose = require("mongoose");
-var UserModel = mongoose.model("User");
-var multer = require("multer");
-var fileUploadMid = multer({dest:"./public/images/users"});
+// var mongoose = require("mongoose");
+// var UserModel = mongoose.model("User");
+// var multer = require("multer");
+// var fileUploadMid = multer({dest:"./public/images/users"});
 
 // router.use(function(req,resp,next){
 //   resp.header("Access-Control-Allow-Origin","*");
@@ -16,20 +16,38 @@ var fileUploadMid = multer({dest:"./public/images/users"});
 //   next();
 // });
 
-/* GET users listing. */
-router.get('/', function(req, res) {
 
-  if(req.user)
-   res.json({'usrid':req.user.id,'age':req.user.age});
-   res.json({'not auth':"nooooooo"});
-
-
-  // //res.send('respond with a resource');
-  // 	UserModel.find({}, function (err, result) {
-	// 	res.json(result);
-	// });
-
+/* get user info */
+router.get('/:id?', function(req, res, next) {
+	UserModel.find({_id:req.params.id}, function (err, result) {
+		console.log(result)
+		resp.json(result);
+	})
 });
+
+/* add user info */
+router.post('/add', function(req, res, next) {
+	
+});
+
+/* edit user info */
+router.post('/edit', function(req, res, next) {
+	UserModel.update({_id:req.params.id}, 
+		{$set:{name:req.body.name,email:req.body.email,password:req.body.password}}, 
+		function (err, result) {
+		resp.json({redirect:"/users/"+req.params.id});
+	})
+});
+
+/* delete user */
+router.get('/delete/:id?', function(req, res, next) {
+	UserModel.remove({_id:req.params.id}, function (err, result) {
+		resp.json({status:"ok"});
+	})
+});
+
+
+module.exports = router;
 
 //****************add user******************//
 
@@ -66,28 +84,3 @@ router.get('/', function(req, res) {
 // 	      resp.json(err);
 // 	})
 // })
-
-
-router.get("/:id", function (req, resp) {
-	UserModel.find({_id:req.params.id}, function (err, result) {
-		console.log(result)
-		resp.json(result);
-	})
-})
-
-
-router.put("/:id", JSONParser,function (req, resp) {
-	UserModel.update({_id:req.params.id}, 
-		{$set:{name:req.body.name,email:req.body.email,password:req.body.password}}, 
-		function (err, result) {
-		resp.json({redirect:"/users/"+req.params.id});
-	})
-})
-
-router.delete("/:id",function (req, resp) {
-	UserModel.remove({_id:req.params.id}, function (err, result) {
-		resp.json({status:"ok"});
-	})
-})
-
-module.exports = router;

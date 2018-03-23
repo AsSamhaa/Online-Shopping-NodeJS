@@ -7,11 +7,13 @@ var Schema = mongoose.Schema;
 var userSchema = new Schema({
   name: { type:String, required: true },
   email: { type:String, required: true },
-  password: { type:String, required: true },
+  password: { type:String },
   address: String,
+  image: String,
   gmail: String,
   facebookMail: String,
-  image: String,
+  accessToken: String,
+  refreshToken: String,
   productId: { type: Schema.Types.ObjectId, ref: 'Product' }
 });
 

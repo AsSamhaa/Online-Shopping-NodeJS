@@ -5,17 +5,10 @@
  */
 
 var app = require('../app');
-var debug = require('debug')('online-shopping:server');
-var express = require('express');
-const https= require('https');
-const fs = require('fs');
-var graph=require('fbgraph');
-var {google}=require('googleapis');
-var OAuth2 = google.auth.OAuth2;
-var plus = google.plus('v1');
-var gmail = google.gmail('v1');
-var jwt = require('jsonwebtoken');
-// var http = require('http');
+var fs = require('fs');
+var debug = require('debug')('temp:server');
+var https = require('https');
+
 
 /**
  * Get port from environment and store in Express.
@@ -104,6 +97,5 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  console.log(bind);
   debug('Listening on ' + bind);
 }

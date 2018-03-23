@@ -8,11 +8,11 @@ var User = require("./user");
 var Schema = mongoose.Schema;
 
 var productSchema = new Schema({
-  productName: { type: String, required: true },
-  productPrice: { type: Number, required: true },
+  name: { type: String, required: true },
+  price: { type: Number, required: true },
   amountAvailable: { type: Number, required: true },
   description: { type: String, required: true },
-  productImage: String,
+  image: String,
   sellerId : { type: Schema.Types.ObjectId, ref: "Seller" },
   subcatId: { type: Schema.Types.ObjectId, ref: "Subcategory" },
   orderId: [{ type: Schema.Types.ObjectId, ref: "Order" }],
