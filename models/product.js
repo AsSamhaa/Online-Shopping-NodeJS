@@ -19,5 +19,6 @@ var productSchema = new Schema({
   userId: [{ type: Schema.Types.ObjectId, ref: "User" }],
 });
 
+
 // Register ...
 module.exports = mongoose.model("Product", productSchema);

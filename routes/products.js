@@ -1,6 +1,5 @@
 var express = require('express');
 var Product = require('../models/product');
-
 var router = express.Router();
 
 
@@ -83,6 +82,17 @@ router.get('/delete/:id?', function(req, res, next) {
     }else{
         res.status(404).json({result:'Not found'});
     }
+});
+
+//*********text search for specific product ************************//
+router.post('/search', function(req, res, next) {
+    Product.find({name :{$regex:req.body.search}},function(err, result){
+        if(!err){
+            res.json(result);
+        }else {
+            res.json(err);
+        }
+    })
 });
 
 
