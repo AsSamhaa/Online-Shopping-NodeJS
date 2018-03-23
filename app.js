@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var fs = require("fs");
 
-// var auth = require('./routes/auth');
+var auth = require('./routes/auth');
 var socialmedia = require('./routes/socialmedia');
 var products = require('./routes/products');
 var users = require('./routes/users');
@@ -43,10 +43,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// app.use(auth);
+app.use(auth);
+app.use('/socialmedia',socialmedia);
 app.use('/products', products);
 app.use('/users', users);
-app.use('/socialmedia',socialmedia);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -6,43 +6,43 @@ var router = express.Router();
 
 /* get product info */
 router.get('/:id?', function(req, res, next) {
-    if(req.params.id){
-        var id = req.params.id;
-        Product.findOne({ _id: id }, function(err, result) {
-            res.json(result); });
+    if (req.isAuthenticated) {
+        if (req.params.id) {
+            var id = req.params.id;
+            Product.findOne({ _id: id }, function(err, result) { res.json(result); });
+        } else {
+            Product.find({}, function(err,result) { res.json(result); });
+        }
     } else {
-        Product.find({}, function(err,result) {
-            res.json(result);
-        });
+        res.status(403).json({ result: 'You don\'t have enough permissions'});
     }
 });
 
 /* add product info */
 router.post('/add', function(req, res, next) {
-    // if (req.isAuthenticated) {
-    //     // statement
-    // }
-    console.log(req.body.name);
-    var product = new Product({
-        name: req.body.name,
-        price: req.body.price,
-        amountAvailable: req.body.amountAvailable,
-        description: req.body.description,
-        productImage: req.body.image,
-        sellerId: req.body.sellerId
-        //subcatId:
-        //orderId:
-        //userId:
-    })
-    product.save(function(err, result){
-        if(!err){
-            // res.send(req.body)
-            res.json({result:'product added'});
-        }else{
-            res.json(err);
-            
-        }
-    })
+    if (req.isAuthenticated) {
+        console.log(req.body.name);
+        var product = new Product({
+            name: req.body.name,
+            price: req.body.price,
+            amountAvailable: req.body.amountAvailable,
+            description: req.body.description,
+            productImage: req.body.image,
+            sellerId: req.body.sellerId
+            //subcatId:
+            //orderId:
+            //userId:
+        })
+        product.save(function(err, result){
+            if (!err) {
+                res.json({result: 'product added'});
+            } else {
+                res.json(err);
+            }
+        });
+    } else {
+        res.status(403).json({ result: 'You don\'t have enough permissions'});
+    }
 });
 
 /* edit product info */
@@ -73,14 +73,14 @@ router.post('/edit', function(req, res, next) {
 /* delete product */
 router.get('/delete/:id?', function(req, res, next) {
     if(req.params.id){
-        Product.remove({_id:req.params.id},function(err,data){
-            if(!err){
+        Product.remove({ _id: req.params.id }, function(err,data) {
+            if (!err) {
                 res.json({result:"deleted"});
-            }else{
+            } else {
                 res.status(404).json({result:'Not found'});
             } 
-         })    
-    }else{
+        });
+    } else {
         res.status(404).json({result:'Not found'});
     }
 });
