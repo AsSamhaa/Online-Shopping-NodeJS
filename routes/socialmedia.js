@@ -37,8 +37,8 @@ expressserver.use(function(req,resp,next){
         , "redirect_uri":  'https://localhost:9010/socialmedia/fbcallback',
         scope:['public_profile','email']
         });
-    //response.send("<a href='"+authUrl+"'>Login With Facebook</a>");
-    response.send(authUrl);
+    // response.send("<a href='"+authUrl+"'>Login With Facebook</a>");
+     response.send(authUrl);
 });
 
 //*************************************Facebook Callback******************************** */
@@ -54,6 +54,7 @@ expressserver.get('/fbcallback',function(request,response){
             , "code":           request.query.code
             },function (err, facebookRes) {
             
+                
                 user.token=facebookRes.access_token;
                 // Set Access Token
                 graph.setAccessToken(user.token);
@@ -67,7 +68,12 @@ expressserver.get('/fbcallback',function(request,response){
                     user.email=result.email;
                     user.facebookuser=true;
                     user.socialuser=true;
+                    user.fbid=result.id;
+                     
+                    // console.log(result.id);
+                   
                     
+                   
                     UserModel.findOne({email:user.email},function(err,userdata){
                       
                         if(userdata !== null)
@@ -106,7 +112,7 @@ expressserver.get('/fbcallback',function(request,response){
                         }
 
                     });
-                    
+                  
 
                 });
 
@@ -143,7 +149,8 @@ expressserver.get('/fbcallback',function(request,response){
         authclient.getToken(request.query.code,function(err,token){
         
           if(!err)
-            {    
+            { 
+                
                     //setcredentails on access token and save it in file
                     authclient.setCredentials(token);
                     // user.token=JSON.stringify(token);
@@ -165,7 +172,11 @@ expressserver.get('/fbcallback',function(request,response){
                             user.email=res.data.emails[0].value;   
                             user.googleuser=true;               
                             user.socialuser=true;
+                            user.id=res.data.id;
                             
+                            response.json(user);
+                            
+                            /*
                             UserModel.findOne({email:user.email},function(err,userdata){
                       
                                 if(userdata !== null)
@@ -205,6 +216,7 @@ expressserver.get('/fbcallback',function(request,response){
                                 }
         
                             });
+                            */
 
                         });
 
