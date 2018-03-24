@@ -25,6 +25,7 @@ fs.readdirSync(path.join(__dirname,"models")).forEach(function(filename){
 var index = require('./routes/index');
 var users = require('./routes/users');
 var products = require('./routes/products');
+var categories = require('./routes/categories');
 var socialmedia = require('./routes/socialmedia');
 var auth = require('./routes/auth');
 var jwt = require('jsonwebtoken');
@@ -163,6 +164,7 @@ app.use('/auth',auth);
 app.use('/products', products);
 app.use('/users', users);
 app.use('/socialmedia',socialmedia);
+app.use('/categories',categories);
 
 
 // catch 404 and forward to error handler
