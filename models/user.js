@@ -6,7 +6,7 @@ var Schema = mongoose.Schema;
 
 var userSchema = new Schema({
   name: { type:String, required: true },
-  email: { type:String, required: true },
+  email: { type:String, required: true, unique: true},
   password: { type:String },
   address: String,
   image: String,
@@ -14,7 +14,7 @@ var userSchema = new Schema({
   facebookMail: String,
   accessToken: String,
   refreshToken: String,
-  productId: { type: Schema.Types.ObjectId, ref: 'Product' }
+  revProductId: [{ type: Schema.Types.ObjectId, ref: 'Product' }]
 });
 
 // Register ...

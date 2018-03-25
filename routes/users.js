@@ -1,95 +1,117 @@
 var express = require('express');
+var fs = require("fs");
 var User = require('../models/user');
+var Seller = require('../models/seller');
 
 var router = express.Router();
 
-// start editing 
-// var mongoose = require("mongoose");
-// var User = mongoose.model("User");
-// var multer = require("multer");
-// var fileUploadMid = multer({dest:"./public/images/users"});
 
-// router.use(function(req,res,next){
-//   res.header("Access-Control-Allow-Origin","*");
-//   res.header("Access-Control-Allow-Headers","Content-Type");
-//   res.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE")
-//   next();
-// });
-
-
-/* get user info */
-router.get('/:id?', function(req, res, next) {
-	User.find({ _id: req.params.id }, function(err, result) {
-		console.log(result);
-		res.json(result);
-	});
+// get user info
+/*!!!!!!!!!!!!!!!!!!!!!!!!
+ * + req.userId expected
+*/
+router.get('/', function(req, res, next) {
+    if (req.userId) {
+    	User.find({ _id: req.userId }, function(err, result) {
+            if (!err) {
+                res.json({ result: result });
+            } else {
+                res.json(err);
+            }
+    	});
+    } else
+        res.status(403).json({ result: 'user is not authenticated' });
 });
 
-/* add user info */
+// add user info
+/*!!!!!!!!!!!!!!!!!!!!!!!!
+ * + need to add validation of names, password, email, etc..
+ * + need to add req.facebookMail, req.accessToken and req.refreshToken to the request
+*/
 router.post('/add', function(req, res, next) {
-	
+    var userObj = {}
+    for (field of Object.keys(req.body)) {
+        userObj[field] = req.body[field];
+    }
+    if (req.file) {
+        userObj.image = req.file.path;
+    }    
+    var user = new User(userObj);
+    user.save(function(err, result) {
+        if (!err) {
+            res.json({ result: 'user added' });
+        } else
+            res.json(err);
+    });
+});
+
+router.post('/add_seller', function(req, res, next) {
+    var sellerObj = {}
+    for (field of Object.keys(req.body)) {
+        sellerObj[field] = req.body[field];
+    }
+    if (req.file) {
+        sellerObj.image = req.file.path;
+    }    
+    var seller = new Seller(sellerObj);
+    seller.save(function(err, result) {
+        if (!err) {
+            res.json({ result: 'seller added' });
+        } else
+            res.json(err);
+    });
 });
 
 /* edit user info */
+/*!!!!!!!!!!!!!!!!!!!!!
+ * + need to add validation of names, password, email, etc..
+ * + need to check for the match of access token and the sent id; to prevent any user
+ *   from writing over other users info
+*/
 router.post('/edit', function(req, res, next) {
-	User.update(
-		{ _id: req.params.id }, 
-		{ $set: {
-			name: req.body.name,
-			email: req.body.email,
-			password: req.body.password
-		} },
-		function(err, result) {
-			res.json({ redirect: "/users/" + req.params.id });
-		}
-	);
+    if (req.userId) {
+        var userObj = {}
+        for (field of Object.keys(req.body)) {
+            if (field != 'password') {
+                userObj[field] = req.body[field];
+            }
+        }
+        if (req.file) {
+            var oldPicture = User.findOne({ _id: req.userId }, function(err, result) {
+                if (!err) {
+                    if (result.image) {
+                        fs.unlinkSync(result.image);
+                    }
+                    userObj.image = req.file.path;
+                } else
+                    res.json(err);
+            });
+        }
+        User.update(
+            { _id: req.userId },
+            { $set: userObj },
+            function(err, result) {
+                if (!err) {
+                    res.json({ result: 'user edited' });
+                } else
+                    res.json(err);
+            });
+    } else
+        res.status(403).json({ result: 'user is not authenticated' });
 });
 
 /* delete user */
-router.get('/delete/:id?', function(req, res, next) {
-	User.remove(
-		{_id: req.params.id },
-		function(err, result) {
-			res.json({status:"ok"});
-		}
-	);
+router.get('/delete', function(req, res, next) {
+    if (req.userId) {
+        User.remove({ _id: userId }, function (err, result) {
+            if (!err) {
+                res.json({ result: 'user deleted' });
+            } else
+                res.json(err);
+        });
+    } else
+        res.status(403).json({ result: 'user is not authenticated' });
 });
 
 
 module.exports = router;
-
-//****************add user******************//
-
-
-// for testing
-// router.post("/",function (req, res) {
-// 	var user = new User({
-// 		name:"ahmed",
-// 		email:"a@yahoo.com",
-// 		password:"as1244",
-// 	});
-// 	user.save(function (err, doc) {
-// 	    if(!err)
-// 	      res.json({status:"ok"});
-// 	    else
-// 	      res.json(err);
-// 	})
-// })
-
-
-
-// router.post("/", fileUploadMid.single("img"),function (req, res) {
-// 	console.log(req.body, req.file.filename);
-// 	var user = new User({
-// 		name: req.body.name,
-// 		email: req.body.email,
-// 		password: req.body.password,
-// 		image: req.file.filename
-// 	});
-// 	user.save(function (err, doc) {
-// 	    if(!err)
-// 	      res.json({status:"ok"});
-// 	    else
-// 	      res.json(err);
-// 	})
-// })

@@ -4,7 +4,7 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
 var sellerSchema = new Schema({
-  NationalId: { type: Number, required: true },
+  nationalId: { type: Number, required: true },
   name: { type: String, required: true },
   email: { type: String, required: true },
   password: { type: String, required: true },

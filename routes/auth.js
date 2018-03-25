@@ -1,13 +1,15 @@
+/* put authentication logic here */
 var express = require('express');
 
 var router = express.Router();
 
 
-/* to set the default for any request as not authenticated
-and override any attempt to gain unauthorized access
-*/
 router.use(function(req, res, next) {
-    req.isAuthenticated = false;
+    /*!!!!!!!!!!!!!!!!!!!!!!
+     * need to get the middleware to parse the access token and assign a userId..
+     * to the body instead of req.isAuthenticated
+    */
+    req.userId = '5ab701a0eaf5213e189f6bb7';
     next()
 });
 
