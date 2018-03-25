@@ -11,16 +11,21 @@ var fs = require("fs");
 var mongoose = require("mongoose");
 mongoose.connect("mongodb://localhost:27017/souq");
 
-require('./models/user');
-require('./models/seller');
-require('./models/subcategory');
-require('./models/product');
-require('./models/order');
+// require('./models/user');
+// require('./models/seller');
+// require('./models/subcategory');
+// require('./models/product');
+// require('./models/order');
+
+fs.readdirSync(path.join(__dirname,"models")).forEach(function(filename){
+    require('./models/'+filename);
+});
 
 
 var index = require('./routes/index');
 var users = require('./routes/users');
 var products = require('./routes/products');
+var categories = require('./routes/categories');
 var socialmedia = require('./routes/socialmedia');
 var auth = require('./routes/auth');
 var login = require('./routes/login');
@@ -74,6 +79,7 @@ app.use('/login',login) ;
 app.use('/products', products);
 app.use('/users', users);
 app.use('/socialmedia',socialmedia);
+app.use('/categories',categories);
 
 
 // catch 404 and forward to error handler

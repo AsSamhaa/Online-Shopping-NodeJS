@@ -3,7 +3,7 @@ var Product = require('../models/product');
 var router = express.Router();
 
 
-/* get product info */
+/**************** get product info ***************************/
 router.get('/:id?', function(req, res, next) {
     if(req.params.id){
         var id = req.params.id;
@@ -16,7 +16,7 @@ router.get('/:id?', function(req, res, next) {
     }
 });
 
-/* add product info */
+/************************ add product info ************************/
 router.post('/add', function(req, res, next) {
     // if (req.isAuthenticated) {
     //     // statement
@@ -44,8 +44,8 @@ router.post('/add', function(req, res, next) {
     })
 });
 
-/* edit product info */
-router.post('/edit', function(req, res, next) {
+/************************* edit product info **************************8*/
+router.post('/edit/:id', function(req, res, next) {
     var id = req.params.id;
     //res.send(req.body)
     console.log(req.body.name);
@@ -69,7 +69,7 @@ router.post('/edit', function(req, res, next) {
         });
 });
 
-/* delete product */
+/************************* delete product ********************************/
 router.get('/delete/:id?', function(req, res, next) {
     if(req.params.id){
         Product.remove({_id:req.params.id},function(err,data){
@@ -97,20 +97,3 @@ router.post('/search', function(req, res, next) {
 
 
 module.exports = router;
-
-// start editing
-// var UrlEncodedParser = bodyParser.urlencoded({extended:false}); 
-// var bodyParser = require("body-parser")
-// var JSONParser = bodyParser.json();
-// var urlEncodedParsermid = bodyParser.urlencoded();
-// var mongoose = require("mongoose");
-// var UserModel = mongoose.model("User");
-// var multer = require("multer");
-// var fileUploadMid = multer({dest:"./public/images/products"});
-
-// router.use(function(req,resp,next){
-//   resp.header("Access-Control-Allow-Origin","*");
-//   resp.header("Access-Control-Allow-Headers","Content-Type");
-//   resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE")
-//   next();
-// });

@@ -63,8 +63,7 @@ expressrouter.use(function(req,res,next){
                           }
                          
                         });
-                      
-                    
+                                     
                   }else if(authdata.user.socialuser)
                     {
                       console.log('check in Social module ');
