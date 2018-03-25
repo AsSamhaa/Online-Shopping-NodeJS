@@ -13,7 +13,6 @@ router.get('/:id?', function(req, res, next) {
         }	
 	})
 });
-
 /******************************** add user info *******************************************/
 router.post('/add', function(req, res, next) {
     // if (req.isAuthenticated) {

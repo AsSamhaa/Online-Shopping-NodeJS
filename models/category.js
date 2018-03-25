@@ -1,7 +1,7 @@
 var mongoose = require("mongoose");
-var autoIncrement = require('mongoose-auto-increment');
-var connection = mongoose.createConnection("mongodb://localhost/souq");
-autoIncrement.initialize(connection);
+// var autoIncrement = require('mongoose-auto-increment');
+// var connection = mongoose.createConnection("mongodb://localhost/souq");
+// autoIncrement.initialize(connection);
 
 
 // ORM Mapping ...
@@ -12,8 +12,8 @@ var categorySchema = new Schema({
 });
 
 
-var Category = connection.model('categories', categorySchema);
-categorySchema.plugin(autoIncrement.plugin, 'Category');
+// var Category = connection.model('categories', categorySchema);
+// categorySchema.plugin(autoIncrement.plugin, 'Category');
 
 // Register ...
 module.exports = mongoose.model("Category", categorySchema);

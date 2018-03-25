@@ -120,8 +120,6 @@ expressserver.get('/fbcallback',function(request,response){
     
     
 });
-
-
 //*****************************************Get Google Url****************************** */ 
    expressserver.get('/gourl',function(req,resp){
             // generate a url that asks permissions for Google+ and Google Calendar scopes
