@@ -10,10 +10,8 @@ var userSchema = new Schema({
   password: { type:String },
   address: String,
   image: String,
-  gmailId: String,
-  facebookId: String,
+  socialId: String,
   accessToken: String,
-  refreshToken: String,
   productId: { type: Schema.Types.ObjectId, ref: 'Product' }
 });
 

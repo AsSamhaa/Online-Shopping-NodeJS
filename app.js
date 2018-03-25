@@ -23,6 +23,7 @@ var users = require('./routes/users');
 var products = require('./routes/products');
 var socialmedia = require('./routes/socialmedia');
 var auth = require('./routes/auth');
+var login = require('./routes/login');
 var jwt = require('jsonwebtoken');
 var fs = require("fs");
 
@@ -59,103 +60,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 //**********************************restful api**********************************************************/
 app.use(function(req,resp,next){
   resp.header("Access-Control-Allow-Origin","*");
-  resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,email,password");
-  resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE")
+  resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,email,password,X-ACCESS_TOKEN , Access-Control-Allow-Origin ,  Origin , x-requested-with ");
+  resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE"),
+  
   next();
 });
 
-//**************************authentication middle ware************************************************** */
-app.use(function(req,res,next){
-    //get auth header value
-
-    const bearerheader=req.headers['authorization'];
-    // console.log(bearerheader);
-
-  if(typeof bearerheader !== "undefined"){
-
-          const bearertoken=bearerheader;
-          //set token
-          req.token=bearertoken;
-          req.user={};
-          console.log('before verify token');
-
-      jwt.verify(req.token,'secretkey',function(err,authdata){
-          if(err)
-          {
-              res.send(err);
-
-          }else{
-
-              //check user data
-              //select this user from db and check if authdata
-              // req.user.id=authdata.user.id;
-
-                  if(authdata.user.seller)
-                  {
-                      //check in seller module 
-                      SellerModel.find({$and:[{email:authdata.user.email},{password:authdata.user.pass}]},function(err,userdata){
-                          req.user.isSeller=true;
-                          req.user.isAuthenticated=true;
-                          req.user.id=userdata._id;
-                      });
-                        // req.user.age=authdata.user.name;
-
-                  }else if(authdata.user.isuser)
-                  {
-                        //check in users model
-                        UserModel.find({$and:[{email:authdata.user.email},{password:authdata.user.pass}]},function(err,userdata){
-                          req.user.isUser=true;
-                          req.user.isAuthenticated=true;
-                          req.user.id=userdata._id;
-                        });
-                      
-                    
-                  }else if(authdata.user.socialuser)
-                    {
-                          //check in users model
-                          if(authdata.user.facebookuser)
-                            {
-                                  //check in users model
-                                  UserModel.find({$and:[{email:authdata.user.email},{password:authdata.user.pass}]},function(err,userdata){
-                                    req.user.facebookUser=true;
-                                    req.user.isAuthenticated=true;
-                                    req.user.id=userdata._id;
-                                  });
-
-                            }else
-                            {
-                                  //googleuser
-                                  //check in users model
-                                  UserModel.find({$and:[{email:authdata.user.email},{password:authdata.user.pass}]},function(err,userdata){
-                                    req.user.googleUser=true;
-                                    req.user.isAuthenticated=true;
-                                    req.user.id=userdata._id;
-                                  });
-                                
-                            }
 
 
-                   }
-                  
-              
-            }
-
-          next();     
-    });
-
-    // next();
-      
-}else{
-  console.log('header not exist');
-   next();
-}
-
-
-});
-
-
+app.use(auth);
 app.use('/', index);
-app.use('/auth',auth);
+app.use('/login',login) ;
 app.use('/products', products);
 app.use('/users', users);
 app.use('/socialmedia',socialmedia);
