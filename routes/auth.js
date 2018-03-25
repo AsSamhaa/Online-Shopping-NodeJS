@@ -1,139 +1,98 @@
-/* put authentication logic here */
 var express = require('express');
+var expressrouter = express.Router();
 
-var router = express.Router();
 
+//**************************authentication middle ware************************************************** */
+expressrouter.use(function(req,res,next){
+    //get auth header value
 
-module.exports = router;
-var express = require('express');
-var jwt = require('jsonwebtoken');
-var mongoose = require("mongoose");
-var nodemailer = require('nodemailer');
-var User = require("../models/user");
-var Seller = require("../models/seller");
+    // const bearerheader=req.headers['authorization'];
+    const bearerheader=req.body.usertoken;
+     console.log(req.body);       
+    // console.log(bearerheader);
 
-var router = express.Router();
+  if(typeof bearerheader !== "undefined"){
 
-// login
-router.post('/login', function(req, res) {
-    var useremail = req.headers['email'];
-    var userpass = req.headers['password'];
-    console.log(useremail, userpass);
-    if (typeof useremail !== "undefined" && typeof userpass !== "undefined") {
-        console.log('testlogin');
-        //check in users model
-        User.findOne(
-        { $and: [{ email: useremail }, { password: userpass }] },
-        function(err, userdata) {
-            if (!err) {
-                console.log('user', userdata);
-                if (userdata !== null) {
-                    var user_data = {};
-                    user_data.id = userdata._id;
-                    user_data.name = userdata.name;
-                    user_data.email = userdata.email;
-                    user_data.password = userdata.password
-                    user_data.image = userdata.image;
-                    user_data.address = userdata.address;
+          const bearertoken=bearerheader;
+          //set token
+          req.token=bearertoken;
+          req.user={};
+          console.log('before verify token');
 
-                    var user = {};
-                    user.email = userdata.email;
-                    user.pass = userdata.password
-                    user.isUser = true;
+      jwt.verify(req.token,'secretkey',function(err,authdata){
+          if(err)
+          {
+              res.send(err);
 
-                    jwt.sign({
-                        user: user
-                    }, 'secretkey', function(err, token) {
+          }else{
 
-                        res.json({
-                            token: token,
-                            user: user_data
+              //check user data
+              //select this user from db and check if authdata
+              console.log('after verify token');
+
+                  if(authdata.user.seller)
+                  {
+                    console.log('check in seller module ');
+                      //check in seller module 
+                      SellerModel.findOne({email:authdata.user.email},{password:authdata.user.pass},function(err,userdata){
+                          
+                         if(userdata != null)
+                         {
+                            req.user.isSeller=true;
+                            req.user.isAuthenticated=true;
+                            req.user.id=userdata._id;
+                            next();
+                         }
+                          
+                      });
+                        
+
+                  }else if(authdata.user.isuser)
+                  {
+                    console.log('check in user module ');
+                        //check in users model
+                        UserModel.findOne({email:authdata.user.email},{password:authdata.user.pass},function(err,userdata){
+                         
+                          if(userdata != null)
+                          {
+                            req.user.isUser=true;
+                            req.user.isAuthenticated=true;
+                            req.user.id=userdata._id;
+                            next();
+                          }
+                         
                         });
-
-                    });
-
-
-
-                } else {
-                    //check in seller model
-                    SellerModel.findOne({
-                        $and: [{
-                            email: useremail
-                        }, {
-                            password: userpass
-                        }]
-                    }, function(err, userdata) {
-                        if (!err) {
-                            console.log('seller', userdata);
-                            if (userdata !== null) {
-                                var user_data = {};
-                                user_data.id = userdata._id;
-                                user_data.name = userdata.name;
-                                user_data.email = userdata.email;
-                                user_data.password = userdata.password
-                                user_data.image = userdata.image;
-                                user_data.address = userdata.address;
-
-                                var user = {};
-                                user.email = userdata.email;
-                                user.pass = userdata.password
-                                user.isSeller = true;
-
-                                jwt.sign({
-                                    user: user
-                                }, 'secretkey', function(err, token) {
-
-                                    res.json({
-                                        token: token,
-                                        user: user_data
-                                    });
-
-                                });
-
-
-                            } else {
-                                res.json({
-                                    'err': 'not a user'
-                                });
+                                     
+                  }else if(authdata.user.socialuser)
+                    {
+                      console.log('check in Social module ');
+                          //check in users model
+                          UserModel.findOne({email:authdata.user.email},{socialId:authdata.user.id},function(err,userdata){
+                            
+                            if(userdata != null)
+                            {
+                              req.user.socialuser=true;
+                              req.user.isAuthenticated=true;
+                              req.user.id=userdata._id;
+                              console.log(' Social Auth ');
+                               console.log(req.user);
+                               next();
                             }
-
-                        } else {
-                            res.json({
-                                'err': 'not a user'
-                            });
-                        }
-
-                    });
-
-
-
-                }
-
-
-
-                //else of user model err
-            } else {
-
-                res.json({
-                    'err': 'not a user'
-                });
-
+                            
+                          });
+                   }
             }
 
-        });
+          // next();     
+    });
 
-    } else {
-        res.json({
-            'err': 'not a user'
-        });
-    }
+      // next();
+      
+}else{
+  console.log('header not exist');
+   next();
+}
 });
-
-
-
-
-
-
 
 
 //*****************************************Send Email******************************** */
@@ -188,7 +147,6 @@ router.post('/forgetpassword', function(req, res) {
             'err': 'not a user'
         });
     }
-
 });
 
-module.exports = router; >>>
+module.exports = router;

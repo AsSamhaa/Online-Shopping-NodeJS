@@ -13,6 +13,7 @@ var socialmedia = require('./routes/socialmedia');
 var products = require('./routes/products');
 var users = require('./routes/users');
 var categories = require('./routes/categories');
+var login = require('./routes/login');
 
 
 
@@ -41,119 +42,24 @@ app.use(upload.single('image'));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(auth);
-app.use('/socialmedia',socialmedia);
+app.use('/login', login) ;
+app.use('/socialmedia', socialmedia);
 app.use('/products', products);
 app.use('/users', users);
+app.use('/categories', categories);
 
 
 
 
-//**********************************restful api**********************************************************/
-app.use(function(req,resp,next){
-  resp.header("Access-Control-Allow-Origin","*");
-  resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,email,password");
-  resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE")
-  next();
-});
+// //**********************************restful api**********************************************************/
+// app.use(function(req,resp,next){
+//   resp.header("Access-Control-Allow-Origin","*");
+//   resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,email,password,X-ACCESS_TOKEN , Access-Control-Allow-Origin ,  Origin , x-requested-with ");
+//   resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE"),
+  
+//   next();
+// });
 
-//**************************authentication middle ware************************************************** */
-app.use(function(req,res,next){
-    //get auth header value
-
-    const bearerheader=req.headers['authorization'];
-    // console.log(bearerheader);
-
-  if(typeof bearerheader !== "undefined"){
-
-          const bearertoken=bearerheader;
-          //set token
-          req.token=bearertoken;
-          req.user={};
-          console.log('dddd');
-
-      jwt.verify(req.token,'secretkey',function(err,authdata){
-          if(err)
-          {
-              res.send(err);
-
-          }else{
-
-              //check user data
-              //select this user from db and check if authdata
-              // req.user.id=authdata.user.id;
-
-                  if(authdata.user.seller)
-                  {
-                      //check in seller module 
-                      SellerModel.find({$and:[{email:authdata.user.email},{password:authdata.user.pass}]},function(err,userdata){
-                          req.user.isSeller=true;
-                          req.user.isAuthenticated=true;
-                          req.user.id=userdata._id;
-                      });
-                        // req.user.age=authdata.user.name;
-
-                  }else if(authdata.user.isuser)
-                  {
-                        //check in users model
-                        UserModel.find({$and:[{email:authdata.user.email},{password:authdata.user.pass}]},function(err,userdata){
-                          req.user.isUser=true;
-                          req.user.isAuthenticated=true;
-                          req.user.id=userdata._id;
-                        });
-                      
-                    
-                  }else if(authdata.user.socialuser)
-                    {
-                          //check in users model
-                          if(authdata.user.facebookuser)
-                            {
-                                  //check in users model
-                                  UserModel.find({$and:[{email:authdata.user.email},{password:authdata.user.pass}]},function(err,userdata){
-                                    req.user.facebookUser=true;
-                                    req.user.isAuthenticated=true;
-                                    req.user.id=userdata._id;
-                                  });
-
-                            }else
-                            {
-                                  //googleuser
-                                  //check in users model
-                                  UserModel.find({$and:[{email:authdata.user.email},{password:authdata.user.pass}]},function(err,userdata){
-                                    req.user.googleUser=true;
-                                    req.user.isAuthenticated=true;
-                                    req.user.id=userdata._id;
-                                  });
-                                
-                            }
-
-
-                   }
-                  
-              
-            }
-
-          next();     
-    });
-
-    // next();
-      
-}else{
-  console.log('header not exist');
-   next();
-}
-
-
-});
-
-
-app.use('/', index);
-app.use('/auth',auth);
-app.use('/products', products);
-app.use('/users', users);
-app.use('/socialmedia',socialmedia);
-app.use('/categories',categories);
-
->>>>>>> 4e1daf639366b2430439b4784032322530cf4e3c
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
