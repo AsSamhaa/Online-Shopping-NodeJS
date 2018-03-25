@@ -1,8 +1,6 @@
 var express = require('express');
 var Product = require('../models/product');
-
 var router = express.Router();
-
 
 /* name
    price
@@ -15,7 +13,7 @@ var router = express.Router();
    userId
 */
 // get single product info
-// need to add pagination
+/* + need to add pagination */
 router.get('/:id', function(req, res, next) {
     var product;
     Product.findOne({ _id: req.params.id }, function(err, result) {
@@ -26,7 +24,9 @@ router.get('/:id', function(req, res, next) {
     });
     // to remove sensitive data if user is not the seller of the product
     product.sellerName = product.sellerId.populate().name;
+    product.subcatName = product.subcatId.populate().name;
     if (req.userId != product.sellerId) {
+        delete product.subcatId;
         delete product.sellerId;
         delete product.orderId;
         delete product.userId;
@@ -34,7 +34,7 @@ router.get('/:id', function(req, res, next) {
         res.status(403).json({ result: 'user is not authenticated' });
 });
 
-/* add product info */
+/************************ add product info ************************/
 router.post('/add', function(req, res, next) {
     if (req.isAuthenticated) {
         console.log(req.body.name);
@@ -61,8 +61,8 @@ router.post('/add', function(req, res, next) {
     }
 });
 
-/* edit product info */
-router.post('/edit', function(req, res, next) {
+/************************* edit product info **************************8*/
+router.post('/edit/:id', function(req, res, next) {
     var id = req.params.id;
     //res.send(req.body)
     console.log(req.body.name);
@@ -86,7 +86,7 @@ router.post('/edit', function(req, res, next) {
         });
 });
 
-/* delete product */
+/************************* delete product ********************************/
 router.get('/delete/:id?', function(req, res, next) {
     if(req.params.id){
         Product.remove({ _id: req.params.id }, function(err,data) {
@@ -101,5 +101,15 @@ router.get('/delete/:id?', function(req, res, next) {
     }
 });
 
+//*********text search for specific product ************************//
+router.post('/search', function(req, res, next) {
+    Product.find({name :{$regex:req.body.search}},function(err, result){
+        if(!err){
+            res.json(result);
+        }else {
+            res.json(err);
+        }
+    })
+});
 
 module.exports = router;

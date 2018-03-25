@@ -3,6 +3,9 @@ var User = require("./user");
 var Seller = require("./seller");
 var Product = require("./product");
 
+var autoIncrement = require('mongoose-auto-increment');
+var connection = mongoose.createConnection("mongodb://localhost/souq");
+autoIncrement.initialize(connection);
 // ORM Mapping ...
 var Schema = mongoose.Schema;
 
@@ -17,6 +20,10 @@ var orderSchema = new Schema({
     default: 'available'
   }
 });
+
+
+var Order = connection.model('orders', orderSchema);
+orderSchema.plugin(autoIncrement.plugin, 'Order');
 
 // Register ...
 module.exports = mongoose.model("Order", orderSchema);

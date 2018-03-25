@@ -1,7 +1,6 @@
 var mongoose = require("mongoose");
 var Category = require("./category");
 
-
 // ORM Mapping ...
 var Schema = mongoose.Schema;
 
