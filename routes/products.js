@@ -49,7 +49,7 @@ router.post('/add', function(req, res, next) {
             price: req.body.price,
             amountAvailable: req.body.amountAvailable,
             description: req.body.description,
-            productImage: req.body.image,
+            image: req.body.image,
             sellerId: req.body.sellerId
             //subcatId:
             //orderId:
