@@ -113,5 +113,14 @@ router.get('/subcat/:id', function(req, res, next) {
 });
 //*********************show products of specific category ****************//
 
+//**********************Seller Shelf *******************************//
+router.get('/warehouse', function(req, res, next) {
+    // console.log("here");
+    Product.find({sellerId:req.userId}, function(err, result) {
+            // console.log("hi");
+            res.json(result); });
+});
 
+
+// notice here you get the seller id from request ===>>tested
 module.exports = router;

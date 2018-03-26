@@ -187,5 +187,16 @@ router.post('/search', function(req, res, next) {
         }
     })
 });
+//******************************Seller Shelf ***************************//
+router.get('/stock', function(req, res, next) {
+    // console.log("here");
+    Product.find({sellerId:req.userId}, function(err, result) {
+        if(!err){
+            res.json(result); 
+        }else {
+            res.json(err);
+        }
+    });
+});
 
 module.exports = router;
