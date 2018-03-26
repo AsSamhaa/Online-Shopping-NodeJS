@@ -90,8 +90,40 @@ router.get('/:id/showsubs',function(req,res,next){
 
 
 
+// show products of a specific subcategory
+/*!!!!!!!!!!!!!!
+ * to turn nested callbacks into promises
+ * to reduce the array of products and truncate some sensitive fields
+*/
+router.get('/subcat/:id', function(req, res, next) {
+    subcatProductsObj = {}
+    Subcategory.findOne({ _id: req.params.id }, function(err, subcat) {
+        if (!err && subcat != '') {
+            console.log('subcat ', subcat);
+            subcatProductsObj[subcat.name] = [];
+            Product.find({ subcatId: req.params.id }, function(err, products) {
+                if (!err) {
+                    subcatProductsObj[subcat.name] = products;
+                    res.json({ result: subcatProductsObj });
+                } else {
+                    res.status(404).json(err);
+                }
+            });
+        } else {
+            res.status(404).json(err);
+        }        
+    });
+});
 //*********************show products of specific category ****************//
 
+//**********************Seller Shelf *******************************//
+router.get('/warehouse', function(req, res, next) {
+    // console.log("here");
+    Product.find({sellerId:req.userId}, function(err, result) {
+            // console.log("hi");
+            res.json(result); });
+});
 
 
+// notice here you get the seller id from request ===>>tested
 module.exports = router;
