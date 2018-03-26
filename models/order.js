@@ -7,7 +7,7 @@ var Product = require("./product");
 var Schema = mongoose.Schema;
 
 var orderSchema = new Schema({
-  orderDate: { type: Date, required: true },
+  orderDate: { type: Date,  default: Date.now,required: true },
   amount: { type: Number, required: true },
   userId: { type: Schema.Types.ObjectId, ref: "User" },
   productId: { type: Schema.Types.ObjectId, ref: "Product" },

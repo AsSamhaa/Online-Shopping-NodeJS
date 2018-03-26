@@ -12,7 +12,8 @@ var userSchema = new Schema({
   image: String,
   socialId: String,
   accessToken: String,
-  revProductId: [{ type: Schema.Types.ObjectId, ref: 'Product' }]
+  revProductId: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
+  cart: [{ type: Schema.Types.ObjectId, ref: 'Product' }]
 });
 
 // Register ...

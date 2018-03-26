@@ -14,7 +14,6 @@ var router = express.Router();
 */
 
 router.use((req, res, next) => {
-   req.isAuthenticated = true;
    req.userId = '5ab80499821daa065d66ea0f';
    next();
 });
@@ -43,7 +42,7 @@ router.get('/:id', function(req, res, next) {
 
 /************************ add product info ************************/
 router.post('/add', function(req, res, next) {
-    if (req.isAuthenticated) {
+    if (req.userId) {
         console.log(req.body.name);
         var product = new Product({
             name: req.body.name,

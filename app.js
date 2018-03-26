@@ -13,6 +13,7 @@ var socialmedia = require('./routes/socialmedia');
 var products = require('./routes/products');
 var users = require('./routes/users');
 var categories = require('./routes/categories');
+var orders = require('./routes/orders');
 var login = require('./routes/login');
 
 
@@ -28,7 +29,7 @@ fs.readdirSync(path.join(__dirname,"models")).forEach(function(filename){
 var upload = multer({ dest: 'public/images/' });
 
 var app = express();
-
+app.use(bodyParser.json({limit:'30mb'}));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -42,11 +43,13 @@ app.use(upload.single('image'));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(auth);
+app.use('/', index);
 app.use('/login', login) ;
 app.use('/socialmedia', socialmedia);
 app.use('/products', products);
 app.use('/users', users);
 app.use('/categories', categories);
+app.use('/orders', orders);
 
 
 
@@ -56,7 +59,6 @@ app.use('/categories', categories);
 //   resp.header("Access-Control-Allow-Origin","*");
 //   resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,email,password,X-ACCESS_TOKEN , Access-Control-Allow-Origin ,  Origin , x-requested-with ");
 //   resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE"),
-  
 //   next();
 // });
 
