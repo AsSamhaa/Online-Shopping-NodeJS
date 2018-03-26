@@ -43,7 +43,7 @@ app.use(upload.single('image'));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(auth);
-app.use('/', index);
+// app.use('/', index);
 app.use('/login', login) ;
 app.use('/socialmedia', socialmedia);
 app.use('/products', products);

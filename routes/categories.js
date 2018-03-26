@@ -1,6 +1,7 @@
 var express = require('express');
 var Category = require('../models/category');
-var Subcategories = require('../models/subcategory');
+var Subcategory = require('../models/subcategory');
+var Product = require('../models/product');
 var router = express.Router();
 
 /************** get category all or specific one  **********************/
@@ -50,7 +51,7 @@ router.post('/addsub', function(req, res, next) {
     //     // statement
     // }
     console.log(req.body.name);
-    var subcat = new Subcategories({
+    var subcat = new Subcategory({
         subcatName: req.body.name,
         // categoryId: req.body.id,
     })
@@ -71,7 +72,7 @@ router.get('/:id/showsubs',function(req,res,next){
     if(req.params.id){
         var id = req.params.id;
         console.log("in");
-        Subcategories.find({categoryId:id},function(err, result) {
+        Subcategory.find({categoryId:id},function(err, result) {
             if(!err){
                 console.log("no error");
                 res.json(result);
@@ -80,18 +81,23 @@ router.get('/:id/showsubs',function(req,res,next){
             }
         });
     }else{
-        Subcategories.find({}, function(err,result) {
+        Subcategory.find({}, function(err,result) {
         res.json(result);
         });
     }
 });
-//*********************show products of specific subcategory ****************//
 
-
-
-
+// show products of a specific subcategory
+router.get('/subcat/:id', function(req, res, next) {
+    Product.find({ subcatId: req.params.id }, function(err, result) {
+        if (!err) {
+            res.json({ result: result });
+        } else {
+            res.json(err);
+        }
+    });
+});
 //*********************show products of specific category ****************//
-
 
 
 module.exports = router;
