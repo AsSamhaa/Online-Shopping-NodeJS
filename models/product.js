@@ -9,7 +9,7 @@ var User = require("./user");
 var Schema = mongoose.Schema;
 
 var rateSchema = new Schema ({
-  userId: { type: Schema.Types.ObjectId, ref: "User" },
+  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   rate: { type: Number, required: true },
 });
 
@@ -19,7 +19,8 @@ var productSchema = new Schema({
   amountAvailable: { type: Number, required: true },
   description: { type: String, required: true },
   image: String,
-  avgRate: Number,
+  sumRate: Number,
+  counter: Number,
   sellerId : { type: Schema.Types.ObjectId, ref: "Seller" },
   subcatId: { type: Schema.Types.ObjectId, ref: "Subcategory" },
   orderId: [{ type: Schema.Types.ObjectId, ref: "Order" }],

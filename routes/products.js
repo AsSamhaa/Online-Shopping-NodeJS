@@ -12,6 +12,13 @@ var router = express.Router();
    orderId
    userId
 */
+
+router.use((req, res, next) => {
+   req.isAuthenticated = true;
+   req.userId = '5ab80499821daa065d66ea0f';
+   next();
+});
+
 // get single product info
 /* + need to add pagination */
 router.get('/:id', function(req, res, next) {
@@ -83,6 +90,76 @@ router.post('/edit/:id', function(req, res, next) {
                 console.log(err)
                 res.json({result:"failed to edit"});
             }
+        });
+});
+
+// name
+// price
+// amountAvailable
+// description
+// image
+// sumRate
+// counter
+// sellerId
+// subcatId
+// orderId
+// ratings
+
+// userId
+// rate
+
+// rate
+router.post('/rate/:id', function(req, res, next) {
+    var productObj = {}
+    // productObj = Product.findOne({ _id: req.params.id }).where('ratings').elemMatch({ userId: req.userId });
+    // Product.findOne({ _id: req.params.id }, function(err, result) {
+    Product.find(/*{ _id: req.params.id }*/).
+    elemMatch('ratings', { 'userId': req.userId }).
+    exec(function(err, result) {
+        if (!err) {
+            productObj = result;
+            console.log('Product.findOne ' + result);
+            res.json(productObj);
+            // if (productObj) {
+                // productObj.populate(
+                // productObj.ratings.findOne(
+                //     { "userId": req.userId },
+                //         // { "userId": req.userId }
+                //     function(err, result) {
+                //         if (!err) {
+                //             console.log('populate result: ' + result);
+                //             res.json({ result: result });
+                //             // Product.updateOne(
+                //             //     { _id: req.params.id },
+                //             //     {
+                //             //         $inc: { counter: 1, sumRate: req.body.rate },
+                //             //         $push: {
+                //             //             ratings: {
+                //             //                 // to make dynamic
+                //             //                 userId: req.userId,
+                //             //                 rate: req.body.rate
+                //             //             }
+                //             //         }
+                //             //     },
+                //             //     function(err, result) {
+                //             //         if (!err) {
+                //             //             res.json({ result: "product rated" });
+                //             //         } else {
+                //             //             res.json(err);
+                //             //         }
+                //             //     });
+                //         } else {
+                //             res.json(err);
+                //         }
+                //     }
+                // );
+            // } else {
+            //     res.json({ result: 'no such product' });
+            // }
+        } else {
+            console.log(err);
+            res.json(err);
+        }
         });
 });
 
