@@ -5,11 +5,6 @@ var mongoose = require("mongoose");
 var UserModel = mongoose.model("User");
 var SellerModel = mongoose.model("Seller");
 // var nodemailer = require('nodemailer');
-
-
-
-
-
 //************************Login************************ */
 expressrouter.post('/',function(req,res){
    

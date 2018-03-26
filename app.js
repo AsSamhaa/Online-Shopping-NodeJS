@@ -26,6 +26,7 @@ var index = require('./routes/index');
 var users = require('./routes/users');
 var products = require('./routes/products');
 var categories = require('./routes/categories');
+var orders = require('./routes/orders');
 var socialmedia = require('./routes/socialmedia');
 var auth = require('./routes/auth');
 var login = require('./routes/login');
@@ -74,12 +75,13 @@ app.use(function(req,resp,next){
 
 
 app.use(auth);
-app.use('/', index);
+// app.use('/', index);
 app.use('/login',login) ;
 app.use('/products', products);
 app.use('/users', users);
 app.use('/socialmedia',socialmedia);
 app.use('/categories',categories);
+app.use('/orders',orders);
 
 
 // catch 404 and forward to error handler
