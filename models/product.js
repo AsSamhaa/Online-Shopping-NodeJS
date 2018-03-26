@@ -3,9 +3,7 @@ var Seller = require("./seller");
 var Subcategory = require("./subcategory");
 var Order = require("./order");
 var User = require("./user");
-var autoIncrement = require('mongoose-auto-increment');
-var connection = mongoose.createConnection("mongodb://localhost/souq");
-autoIncrement.initialize(connection);
+
 
 
 // ORM Mapping ...
@@ -28,8 +26,6 @@ var productSchema = new Schema({
   orderId: [{ type: Schema.Types.ObjectId, ref: "Order" }],
   ratings:[rateSchema],
 });
-var Product = connection.model('products', productSchema);
-productSchema.plugin(autoIncrement.plugin, 'Product');
 
 // Register ...
 module.exports = mongoose.model("Product", productSchema);

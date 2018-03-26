@@ -7,15 +7,24 @@ var router = express.Router();
 router.get('/:id?', function(req, res, next) {
     if(req.params.id){
         var id = req.params.id;
-        Category.findOne({ _id: id }, function(err, result) {
-            res.json(result); });
+        Category.findOne({ _id: id }).populate("subcategoryId").exec(function(err, result){
+             if(!err){           
+                console.log(result);
+                res.json(result);
+            }else {
+                res.json(err);
+            }
+        }); 
     } else {
-        Category.find({}, function(err,result) {
+        Category.find({}).populate("subcategoryId").exec(function(err,result) {
+        if(!err){ 
             res.json(result);
+        }else {
+            res.json(err);
+              }
         });
     }
 });
-
 /******************** add Category info ......*************/
 router.post('/add', function(req, res, next) {
     // if (req.isAuthenticated) {
@@ -24,6 +33,7 @@ router.post('/add', function(req, res, next) {
     console.log(req.body.name);
     var cat = new Category({
         categoryName: req.body.name,
+        subcategoryId: req.body.id,
     })
     cat.save(function(err, result){
         if(!err){
@@ -42,7 +52,7 @@ router.post('/addsub', function(req, res, next) {
     console.log(req.body.name);
     var subcat = new Subcategories({
         subcatName: req.body.name,
-        categoryId: req.body.id,
+        // categoryId: req.body.id,
     })
     subcat.save(function(err, result){
         if(!err){
