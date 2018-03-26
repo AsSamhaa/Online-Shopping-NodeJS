@@ -25,10 +25,10 @@ router.post('/add', function(req, res, next) {
     var product = new Product({
         name: req.body.name,
         price: req.body.price,
-        amountAvailable: req.body.amountAvailable,
+        amountAvailable: req.body.quantity,
         description: req.body.description,
-        productImage: req.body.image,
-        sellerId: req.body.sellerId
+        image: req.body.image,
+        // sellerId: req.body.sellerId
         //subcatId:
         //orderId:
         //userId:

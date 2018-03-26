@@ -46,7 +46,7 @@ var SellerModel = mongoose.model("Seller");
 
 
 var app = express();
-
+app.use(bodyParser.json({limit:'30mb'}));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -73,7 +73,7 @@ app.use(function(req,resp,next){
 
 
 
-app.use(auth);
+// app.use(auth);
 app.use('/', index);
 app.use('/login',login) ;
 app.use('/products', products);
