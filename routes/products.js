@@ -52,8 +52,8 @@ router.post('/add', function(req, res, next) {
             amountAvailable: req.body.amountAvailable,
             description: req.body.description,
             image: req.body.image,
-            sellerId: req.body.sellerId
-            //subcatId:
+            sellerId: req.body.sellerId,
+            subcatId: req.body.subcategory,
             //orderId:
             //userId:
         });
@@ -120,7 +120,7 @@ router.post('/rate/:id', function(req, res, next) {
                 if (product) {
                     // ratings = product.ratings;
                     console.log('product: ', product.ratings);
-                    prevRating = {}
+                    prevRating=null;
                     for (rating of product.ratings) {
                         if (rating.userId == req.userId) {
                             prevRating = rating;
@@ -140,10 +140,13 @@ router.post('/rate/:id', function(req, res, next) {
                                     res.json({ result: 'product rated' });
                                 } else
                                     res.status(404).json(err);
+                            console.log("hi",req.body.ratings)
+                                
                                    
                          });
                     } else {
                         // the rating is not found
+                        console.log("hello",req.body.ratings)
                     }
                     res.json({ 'product': product, 'isExists': isExists });
                 }
