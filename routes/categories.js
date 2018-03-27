@@ -1,6 +1,7 @@
 var express = require('express');
 var Category = require('../models/category');
 var Subcategory = require('../models/subcategory');
+var Product = require('../models/product');
 var router = express.Router();
 
 /************** get category all or specific one  **********************/
@@ -98,8 +99,7 @@ router.get('/:id/showsubs',function(req,res,next){
 router.get('/subcat/:id', function(req, res, next) {
     subcatProductsObj = {}
     Subcategory.findOne({ _id: req.params.id }, function(err, subcat) {
-        if (!err && subcat != '') {
-            console.log('subcat ', subcat);
+        if (!err && subcat != null) {
             subcatProductsObj[subcat.name] = [];
             Product.find({ subcatId: req.params.id }, function(err, products) {
                 if (!err) {

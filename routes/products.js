@@ -1,5 +1,6 @@
 var express = require('express');
 var Product = require('../models/product');
+var Subcategory = require('../models/subcategory');
 var router = express.Router();
 
 /* name
@@ -144,10 +145,6 @@ router.post('/rate/:id', function(req, res, next) {
                     } else {
                         // the rating is not found
                     }
-                    var isExists = product.ratings.includes({
-                        'userId': '5ab80499821daa065d66ea0f',
-                        'rate': 4
-                });
                     res.json({ 'product': product, 'isExists': isExists });
                 }
             } else {
