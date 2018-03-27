@@ -1,9 +1,9 @@
 var express = require('express');
-var expressserver = express.Router();
-var jwt = require('jsonwebtoken');
 var mongoose = require("mongoose");
-var UserModel = mongoose.model("User");
+var jwt = require('jsonwebtoken');
+var User = require("../models/user");
 
+var expressserver = express.Router();
 
 
 expressserver.post('/login',function(req,res){
@@ -30,14 +30,14 @@ expressserver.post('/login',function(req,res){
 
     console.log('uuuuuuuuuuuuuuuuuuuuuuu',user);
     
-    UserModel.findOne({email:useremail},{socialId:userid},function(err,userdata){
+    User.findOne({email:useremail},{socialId:userid},function(err,userdata){
                     
         console.log('testlogin');
         if(userdata !== null)
         {
             console.log('updateuserddddddddddddddddddddd');   
                     //update user access token
-                UserModel.update({email:user.email},{socialId:userid},{"$set":{name:username,image:userimage,accessToken:usertoken}},function(err,data){
+                User.update({email:user.email},{socialId:userid},{"$set":{name:username,image:userimage,accessToken:usertoken}},function(err,data){
                     if(!err)
                     {
                         jwt.sign({user:user},'secretkey',function(err,token){
@@ -59,7 +59,7 @@ expressserver.post('/login',function(req,res){
         {
            //add user
            console.log('savvvvvvvvvvvvvvv');  
-            var adduser=new UserModel({
+            var adduser=new User({
                 name:username,
                 email:useremail,
                 image:userimage,

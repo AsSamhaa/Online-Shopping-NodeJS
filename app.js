@@ -4,49 +4,41 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var mongoose = require("mongoose");
+var multer = require("multer");
 var fs = require("fs");
+var jwt = require('jsonwebtoken');
+var auth = require('./routes/auth');
+var socialmedia = require('./routes/socialmedia');
+var products = require('./routes/products');
+var users = require('./routes/users');
+var categories = require('./routes/categories');
+var orders = require('./routes/orders');
+var login = require('./routes/login');
 
+
+// //**********************************restful api**********************************************************/
 
 //connect with database using mongoose
-var mongoose = require("mongoose");
 mongoose.connect("mongodb://localhost:27017/souq");
 
-// require('./models/user');
-// require('./models/seller');
-// require('./models/subcategory');
-// require('./models/product');
-// require('./models/order');
-
+//not Working !!
 fs.readdirSync(path.join(__dirname,"models")).forEach(function(filename){
     require('./models/'+filename);
 });
 
-
-var index = require('./routes/index');
-var users = require('./routes/users');
-var products = require('./routes/products');
-var categories = require('./routes/categories');
-var socialmedia = require('./routes/socialmedia');
-var auth = require('./routes/auth');
-var login = require('./routes/login');
-var jwt = require('jsonwebtoken');
-var fs = require("fs");
-
-
-var UserModel = mongoose.model("User");
-var SellerModel = mongoose.model("Seller");
-
-
-
-//not Working !!
-// fs.readdirSync(path.join(__dirname,"models")).forEach(function(filename){
-//     require('./models/'+filename);
-// });
-
-
+var upload = multer({ dest: 'public/images/' });
 
 var app = express();
 
+app.use(function(req,resp,next){
+  resp.header("Access-Control-Allow-Origin","*");
+  resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,email,password,X-ACCESS_TOKEN , Access-Control-Allow-Origin ,  Origin , x-requested-with ");
+  resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE"),
+  next();
+});
+
+app.use(bodyParser.json({limit:'5mb'}));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -56,30 +48,22 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(upload.single('image'));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-
-
-
-//**********************************restful api**********************************************************/
-app.use(function(req,resp,next){
-  resp.header("Access-Control-Allow-Origin","*");
-  resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,email,password,X-ACCESS_TOKEN , Access-Control-Allow-Origin ,  Origin , x-requested-with ");
-  resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE"),
-  
-  next();
-});
-
-
-
 app.use(auth);
-app.use('/', index);
-app.use('/login',login) ;
+// app.use('/', index);
+app.use('/login', login) ;
+app.use('/socialmedia', socialmedia);
 app.use('/products', products);
 app.use('/users', users);
-app.use('/socialmedia',socialmedia);
-app.use('/categories',categories);
+app.use('/categories', categories);
+app.use('/orders', orders);
+
+
+
+
+
 
 
 // catch 404 and forward to error handler
@@ -98,8 +82,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  // res.render('error');
-  res.send(res.locals);
+  res.render('error');
 });
 
 module.exports = app;

@@ -2,52 +2,77 @@ var express = require('express');
 var Product = require('../models/product');
 var router = express.Router();
 
+/* name
+   price
+   amountAvailable
+   description
+   image
+   sellerId
+   subcatId
+   orderId
+   userId
+*/
 
-/**************** get product info ***************************/
-router.get('/:id?', function(req, res, next) {
-    if(req.params.id){
-        var id = req.params.id;
-        Product.findOne({ _id: id }, function(err, result) {
-            res.json(result); });
-    } else {
-        Product.find({}, function(err,result) {
+router.use((req, res, next) => {
+   req.userId = '5ab80499821daa065d66ea0f';
+   next();
+});
+
+// get single product info
+/* + need to add pagination */
+router.get('/:id', function(req, res, next) {
+    var product;
+    Product.findOne({ _id: req.params.id }, function(err, result) {
+        if (!err) {
+            product = result;
             res.json(result);
-        });
-    }
+        } else
+            res.json(err);
+    });
+    // to remove sensitive data if user is not the seller of the product
+    // product.sellerName = product.sellerId.populate().name;
+    // product.subcatName = product.subcatId.populate().name;
+    // if (req.userId != product.sellerId) {
+    //     delete product.subcatId;
+    //     delete product.sellerId;
+    //     delete product.orderId;
+    //     delete product.userId;
+    // } else
+    //     res.status(403).json({ result: 'user is not authenticated' });
 });
 
 /************************ add product info ************************/
 router.post('/add', function(req, res, next) {
-    // if (req.isAuthenticated) {
-    //     // statement
-    // }
-    console.log(req.body.name);
-    var product = new Product({
-        name: req.body.name,
-        price: req.body.price,
-        amountAvailable: req.body.amountAvailable,
-        description: req.body.description,
-        productImage: req.body.image,
-        sellerId: req.body.sellerId
-        //subcatId:
-        //orderId:
-        //userId:
-    })
-    product.save(function(err, result){
-        if(!err){
-            // res.send(req.body)
-            res.json({result:'product added'});
-        }else{
-            res.json(err);
-            
-        }
-    })
+    if (req.userId) {
+        console.log(req.body.name);
+        var product = new Product({
+            name: req.body.name,
+            price: req.body.price,
+            amountAvailable: req.body.amountAvailable,
+            description: req.body.description,
+            image: req.body.image,
+            sellerId: req.body.sellerId
+            //subcatId:
+            //orderId:
+            //userId:
+        });
+        product.save(function(err, result){
+            if (!err) {
+                res.json({result: 'product added'});
+            } else {
+                res.json(err);
+            }
+        });
+    } else {
+        res.status(403).json({ result: 'You don\'t have enough permissions'});
+    }
 });
 
 /************************* edit product info **************************8*/
 router.post('/edit/:id', function(req, res, next) {
     var id = req.params.id;
     //res.send(req.body)
+    console.log(req.body)
     console.log(req.body.name);
     console.log(req.params.id);
     Product.update(
@@ -56,7 +81,7 @@ router.post('/edit/:id', function(req, res, next) {
                 name: req.body.name,
                 price: req.body.price,
                 description: req.body.description,
-                productImage: req.body.image
+                image: req.body.image
             }
         },
         function(err,result) {
@@ -69,17 +94,79 @@ router.post('/edit/:id', function(req, res, next) {
         });
 });
 
+// name
+// price
+// amountAvailable
+// description
+// image
+// sumRate
+// counter
+// sellerId
+// subcatId
+// orderId
+// ratings
+
+// userId
+// rate
+
+// rate
+router.post('/rate/:id', function(req, res, next) {
+    var matchedUserRateObj = {}
+    Product.findOne(
+        { _id: req.params.id },
+        function(err, product) {
+            if (!err) {
+                if (product) {
+                    // ratings = product.ratings;
+                    console.log('product: ', product.ratings);
+                    prevRating = {}
+                    for (rating of product.ratings) {
+                        if (rating.userId == req.userId) {
+                            prevRating = rating;
+                        }
+                    }
+                    if (prevRating) {
+                        // the rating is found
+                        Product.findOneAndUpdate(
+                            { _id: req.params.id },
+                            {
+                                $inc: { sumRate: (-1 * prevRating.rate), counter: -1 },
+                                $pull: { ratings: { userId: req.userId } },
+                                $push: { ratings: { userId: req.userId, rate: req.body.rate } }
+                            },
+                            function(err, result) {
+                                if (!err) {
+                                    res.json({ result: 'product rated' });
+                                } else
+                                    res.status(404).json(err);
+                                   
+                         });
+                    } else {
+                        // the rating is not found
+                    }
+                    var isExists = product.ratings.includes({
+                        'userId': '5ab80499821daa065d66ea0f',
+                        'rate': 4
+                });
+                    res.json({ 'product': product, 'isExists': isExists });
+                }
+            } else {
+                res.status(404).json(err);
+            }
+        });
+});
+
 /************************* delete product ********************************/
 router.get('/delete/:id?', function(req, res, next) {
     if(req.params.id){
-        Product.remove({_id:req.params.id},function(err,data){
-            if(!err){
+        Product.remove({ _id: req.params.id }, function(err,data) {
+            if (!err) {
                 res.json({result:"deleted"});
-            }else{
+            } else {
                 res.status(404).json({result:'Not found'});
             } 
-         })    
-    }else{
+        });
+    } else {
         res.status(404).json({result:'Not found'});
     }
 });
@@ -94,6 +181,17 @@ router.post('/search', function(req, res, next) {
         }
     })
 });
-
+//******************************Seller Shelf ***************************//
+router.get('/stock/:userId', function(req, res, next) {
+    // console.log("here");
+    // sellerId = req.params.id;
+    Product.find({sellerId:req.params.userId}, function(err, result) {
+        if(!err){
+            res.json(result); 
+        }else {
+            res.json(err);
+        }
+    });
+});
 
 module.exports = router;
