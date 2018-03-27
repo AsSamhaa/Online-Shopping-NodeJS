@@ -25,19 +25,20 @@ router.get('/:id', function(req, res, next) {
     Product.findOne({ _id: req.params.id }, function(err, result) {
         if (!err) {
             product = result;
+            res.json(result);
         } else
             res.json(err);
     });
     // to remove sensitive data if user is not the seller of the product
-    product.sellerName = product.sellerId.populate().name;
-    product.subcatName = product.subcatId.populate().name;
-    if (req.userId != product.sellerId) {
-        delete product.subcatId;
-        delete product.sellerId;
-        delete product.orderId;
-        delete product.userId;
-    } else
-        res.status(403).json({ result: 'user is not authenticated' });
+    // product.sellerName = product.sellerId.populate().name;
+    // product.subcatName = product.subcatId.populate().name;
+    // if (req.userId != product.sellerId) {
+    //     delete product.subcatId;
+    //     delete product.sellerId;
+    //     delete product.orderId;
+    //     delete product.userId;
+    // } else
+    //     res.status(403).json({ result: 'user is not authenticated' });
 });
 
 /************************ add product info ************************/
@@ -49,7 +50,7 @@ router.post('/add', function(req, res, next) {
             price: req.body.price,
             amountAvailable: req.body.amountAvailable,
             description: req.body.description,
-            productImage: req.body.image,
+            image: req.body.image,
             sellerId: req.body.sellerId
             //subcatId:
             //orderId:
@@ -71,6 +72,7 @@ router.post('/add', function(req, res, next) {
 router.post('/edit/:id', function(req, res, next) {
     var id = req.params.id;
     //res.send(req.body)
+    console.log(req.body)
     console.log(req.body.name);
     console.log(req.params.id);
     Product.update(
@@ -79,7 +81,7 @@ router.post('/edit/:id', function(req, res, next) {
                 name: req.body.name,
                 price: req.body.price,
                 description: req.body.description,
-                productImage: req.body.image
+                image: req.body.image
             }
         },
         function(err,result) {
@@ -178,6 +180,18 @@ router.post('/search', function(req, res, next) {
             res.json(err);
         }
     })
+});
+//******************************Seller Shelf ***************************//
+router.get('/stock/:userId', function(req, res, next) {
+    // console.log("here");
+    // sellerId = req.params.id;
+    Product.find({sellerId:req.params.userId}, function(err, result) {
+        if(!err){
+            res.json(result); 
+        }else {
+            res.json(err);
+        }
+    });
 });
 
 module.exports = router;

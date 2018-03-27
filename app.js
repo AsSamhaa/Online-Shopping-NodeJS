@@ -17,6 +17,7 @@ var orders = require('./routes/orders');
 var login = require('./routes/login');
 
 
+// //**********************************restful api**********************************************************/
 
 //connect with database using mongoose
 mongoose.connect("mongodb://localhost:27017/souq");
@@ -29,7 +30,15 @@ fs.readdirSync(path.join(__dirname,"models")).forEach(function(filename){
 var upload = multer({ dest: 'public/images/' });
 
 var app = express();
-app.use(bodyParser.json({limit:'30mb'}));
+
+app.use(function(req,resp,next){
+  resp.header("Access-Control-Allow-Origin","*");
+  resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,email,password,X-ACCESS_TOKEN , Access-Control-Allow-Origin ,  Origin , x-requested-with ");
+  resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE"),
+  next();
+});
+
+app.use(bodyParser.json({limit:'5mb'}));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -54,13 +63,7 @@ app.use('/orders', orders);
 
 
 
-// //**********************************restful api**********************************************************/
-// app.use(function(req,resp,next){
-//   resp.header("Access-Control-Allow-Origin","*");
-//   resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,email,password,X-ACCESS_TOKEN , Access-Control-Allow-Origin ,  Origin , x-requested-with ");
-//   resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE"),
-//   next();
-// });
+
 
 
 // catch 404 and forward to error handler
