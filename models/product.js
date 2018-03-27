@@ -11,7 +11,7 @@ var Schema = mongoose.Schema;
 var rateSchema = new Schema ({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   rate: { type: Number, required: true },
-});
+}, { _id: false });
 
 var productSchema = new Schema({
   name: { type: String, required: true },

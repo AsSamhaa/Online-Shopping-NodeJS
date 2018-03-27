@@ -109,56 +109,48 @@ router.post('/edit/:id', function(req, res, next) {
 
 // rate
 router.post('/rate/:id', function(req, res, next) {
-    var productObj = {}
-    // productObj = Product.findOne({ _id: req.params.id }).where('ratings').elemMatch({ userId: req.userId });
-    // Product.findOne({ _id: req.params.id }, function(err, result) {
-    Product.find(/*{ _id: req.params.id }*/).
-    elemMatch('ratings', { 'userId': req.userId }).
-    exec(function(err, result) {
-        if (!err) {
-            productObj = result;
-            console.log('Product.findOne ' + result);
-            res.json(productObj);
-            // if (productObj) {
-                // productObj.populate(
-                // productObj.ratings.findOne(
-                //     { "userId": req.userId },
-                //         // { "userId": req.userId }
-                //     function(err, result) {
-                //         if (!err) {
-                //             console.log('populate result: ' + result);
-                //             res.json({ result: result });
-                //             // Product.updateOne(
-                //             //     { _id: req.params.id },
-                //             //     {
-                //             //         $inc: { counter: 1, sumRate: req.body.rate },
-                //             //         $push: {
-                //             //             ratings: {
-                //             //                 // to make dynamic
-                //             //                 userId: req.userId,
-                //             //                 rate: req.body.rate
-                //             //             }
-                //             //         }
-                //             //     },
-                //             //     function(err, result) {
-                //             //         if (!err) {
-                //             //             res.json({ result: "product rated" });
-                //             //         } else {
-                //             //             res.json(err);
-                //             //         }
-                //             //     });
-                //         } else {
-                //             res.json(err);
-                //         }
-                //     }
-                // );
-            // } else {
-            //     res.json({ result: 'no such product' });
-            // }
-        } else {
-            console.log(err);
-            res.json(err);
-        }
+    var matchedUserRateObj = {}
+    Product.findOne(
+        { _id: req.params.id },
+        function(err, product) {
+            if (!err) {
+                if (product) {
+                    // ratings = product.ratings;
+                    console.log('product: ', product.ratings);
+                    prevRating = {}
+                    for (rating of product.ratings) {
+                        if (rating.userId == req.userId) {
+                            prevRating = rating;
+                        }
+                    }
+                    if (prevRating) {
+                        // the rating is found
+                        Product.findOneAndUpdate(
+                            { _id: req.params.id },
+                            {
+                                $inc: { sumRate: (-1 * prevRating.rate), counter: -1 },
+                                $pull: { ratings: { userId: req.userId } },
+                                $push: { ratings: { userId: req.userId, rate: req.body.rate } }
+                            },
+                            function(err, result) {
+                                if (!err) {
+                                    res.json({ result: 'product rated' });
+                                } else
+                                    res.status(404).json(err);
+                                   
+                         });
+                    } else {
+                        // the rating is not found
+                    }
+                    var isExists = product.ratings.includes({
+                        'userId': '5ab80499821daa065d66ea0f',
+                        'rate': 4
+                });
+                    res.json({ 'product': product, 'isExists': isExists });
+                }
+            } else {
+                res.status(404).json(err);
+            }
         });
 });
 

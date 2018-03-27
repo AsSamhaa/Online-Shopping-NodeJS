@@ -7,8 +7,8 @@ var router = express.Router();
 
 
 // get user info
-/**!!!!!!!!!!!!!!!!!!!!!!!!
- + req.userId expected
+/*!!!!!!!!!!!!!!!!!!!!!!!!
+ * req.userId expected
 */
 router.get('/', function(req, res, next) {
     if (req.userId) {
@@ -24,9 +24,9 @@ router.get('/', function(req, res, next) {
 });
 
 // add user info
-/**!!!!!!!!!!!!!!!!!!!!!!!!
- + need to add validation of names, password, email, etc..
- + need to add req.facebookMail, req.accessToken and req.refreshToken to the request
+/*!!!!!!!!!!!!!!!!!!!!!!!!
+ * need to add validation of names, password, email, etc..
+ * need to add req.facebookMail, req.accessToken and req.refreshToken to the request
 */
 router.post('/add', function(req, res, next) {
     var userObj = {}
@@ -65,8 +65,8 @@ router.post('/add_seller', function(req, res, next) {
 
 // edit user info
 /*!!!!!!!!!!!!!!!!!!!!!
- + need to add validation of names, password, email, etc..
- + need to check for the match of access token and the sent id; to prevent any user
+ * need to add validation of names, password, email, etc..
+ * need to check for the match of access token and the sent id; to prevent any user
    from writing over other users info
 */
 router.post('/edit', function(req, res, next) {
