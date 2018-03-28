@@ -57,7 +57,9 @@ router.post('/add_seller', function(req, res, next) {
     var seller = new Seller(sellerObj);
     seller.save(function(err, result) {
         if (!err) {
+            console.log('aaaaaaaaaa');
             res.json({ result: 'seller added' });
+
         } else
             res.json(err);
     });
