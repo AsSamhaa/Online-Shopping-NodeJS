@@ -106,7 +106,7 @@ router.get('/subcat/:id/:page', function(req, res, next) {
                 if (!err) {
                     Product.find({ subcatId: req.params.id }).count().exec(function(err, count) {
                         res.json({products: products,
-                                pages:count/prodPerPage });
+                                pages:Math.ceil(count/prodPerPage) });
                     })
                     // subcatProductsObj[subcat.name] = products;
                     

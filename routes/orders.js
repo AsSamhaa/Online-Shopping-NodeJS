@@ -6,20 +6,23 @@ var router = express.Router();
 
 
 //*******************************Show Seller Orders ****************************//
-router.get('/sellerorders/:id?',function(req, res, next) {
+router.get('/sellerorders/:id?/:page?',function(req, res, next) {
     console.log("111 in ");
     var sellerorders =[];
-    Order.find({}).populate({path:'productId',match:{'sellerId':{$eq:"5ab95e2bda28ff74357c2f03"}}}).exec(function(err,result) {
+    var prodPerPage=2
+    var count;
+    Order.find({}).count().exec(function(err, res){if(!err){count = res;}})
+    Order.find({}).skip((req.params.page-1)*prodPerPage).limit(prodPerPage).populate({path:'productId',match:{'sellerId':{$eq:"5ab95e2bda28ff74357c2f03"}}}).exec(function(err,result) {
         console.log("222 inin ");
         if(!err){
             for (var i= 0; i < result.length; i++) {
                 if (result[i].productId!=null) {
                     sellerorders.push(result[i])
-                    console.log(result);
+                    // console.log(result);
                     console.log("333 no error");
                 }
             }           
-        res.json(sellerorders);  
+        res.json({products:sellerorders, pages:Math.ceil(count/prodPerPage)});  
         }else {
             res.json(err);
         }
