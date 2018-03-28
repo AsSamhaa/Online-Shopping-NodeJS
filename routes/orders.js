@@ -92,5 +92,4 @@ router.post('/edit/:id', function(req, res, next) {
             }
         })
 });
-
-    module.exports = router;
+module.exports = router;
