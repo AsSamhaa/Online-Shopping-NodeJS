@@ -43,8 +43,8 @@ router.post('/add', function(req, res, next) {
             amountAvailable: req.body.amountAvailable,
             description: req.body.description,
             image: req.body.image,
-            sellerId: req.body.sellerId
-            //subcatId:
+            sellerId: req.body.sellerId,
+            subcatId: req.body.subcategory,
             //orderId:
             //userId:
         });
@@ -94,8 +94,8 @@ router.post('/rate/:id', function(req, res, next) {
             if (!err) {
                 // the rating is found
                 if (product) {
-                    console.log('ratings: ', product.ratings);
                     prevRating = {}
+                    // ratings = product.ratings;
                     for (rating of product.ratings) {
                         if (rating.userId == req.userId) {
                             // exctracted the use rating and saved to prevRating

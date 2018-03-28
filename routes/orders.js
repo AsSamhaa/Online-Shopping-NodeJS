@@ -4,6 +4,27 @@ var Product = require('../models/product');
 var router = express.Router();
 
 
+
+//*******************************Show Seller Orders ****************************//
+router.get('/sellerorders/:id?',function(req, res, next) {
+    console.log("111 in ");
+    var sellerorders =[];
+    Order.find({}).populate({path:'productId',match:{'sellerId':{$eq:"5aba767907ead8144a6c18be"}}}).exec(function(err,result) {
+        console.log("222 inin ");
+        if(!err){
+            for (var i= 0; i < result.length; i++) {
+                if (result[i].productId!=null) {
+                    sellerorders.push(result[i])
+                    console.log(result);
+                    console.log("333 no error");
+                }
+            }           
+        res.json(sellerorders);  
+        }else {
+            res.json(err);
+        }
+    });
+});
 //************* get all orders or specific one and also get order products **********//
 router.get('/:id?', function(req, res, next) {
     if(req.params.id){
@@ -16,10 +37,9 @@ router.get('/:id?', function(req, res, next) {
                 res.json(err);
             }
         }); 
-
     } else {
-        Order.find({}).populate("productId").exec(function(err,result) {
-            if(!err){ 
+        Order.find({}).populate({path:"productId"}).exec(function(err,result) {
+                    if(!err){ 
                 res.json(result);
             }else {
                 res.json(err);
@@ -80,5 +100,4 @@ router.post('/edit/:id', function(req, res, next) {
             }
         })
 });
-
 module.exports = router;

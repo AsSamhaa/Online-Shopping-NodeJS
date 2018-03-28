@@ -26,7 +26,6 @@ router.get('/', function(req, res, next) {
 // add user info
 /*!!!!!!!!!!!!!!!!!!!!!!!!
  * need to add validation of names, password, email, etc..
- * need to add req.facebookMail, req.accessToken and req.refreshToken to the request
 */
 router.post('/add', function(req, res, next) {
     var userObj = {}
@@ -113,6 +112,67 @@ router.get('/delete', function(req, res, next) {
     } else
         res.status(403).json({ result: 'user is not authenticated' });
 });
+
+//*********************************add To Cart***********************************//
+router.put('/addtocart/:id', function(req, res, next) {
+    if (req.userId) {
+        User.update(
+            {_id:req.userId}, 
+            {$addToSet: {cart:req.params.id}},function (err, result) {
+            if(!err){
+                res.json(result);
+            }else{
+                 res.json(err); 
+            }
+        })
+    }else
+        res.status(403).json({ result: 'user is not authenticated' });
+}); 
+//****************************Show Cart***************************************//
+router.get('/showcart/:id?',function(req, res, next) {
+    User.find({_id:req.params.id}).populate({path:'cart'}).exec(function(err,result) {
+        if(!err){
+            res.json(result);  
+        }else {
+            res.json(err);
+        }
+    });
+});
+
+
+//****************************Remove product from Cart*************************************//
+// pullAll
+router.delete('/removefromcart/:id', function(req, res, next) {
+    if (req.userId) {
+        User.update(
+            {_id:req.userId}, 
+            {$pullAll: {cart:[req.params.id]}},function (err, result) {
+            if(!err){
+                res.json(result);
+            }else{
+                 res.json(err); 
+            }
+        })
+    }else
+        res.status(403).json({ result: 'user is not authenticated' });
+});
+//********************************Clear Cart ***********************************************//
+router.delete('/clearcart', function(req, res, next) {
+    if (req.userId) {
+        User.update(
+            {_id:req.userId}, 
+            {$pull:{cart:{$nin:[]}}},function (err, result) {
+            if(!err){
+                res.json(result);
+            }else{
+                 res.json(err); 
+            }
+        })
+    }else
+        res.status(403).json({ result: 'user is not authenticated' });
+});
+
+
 
 
 module.exports = router;

@@ -103,8 +103,8 @@ router.get('/subcat/:id', function(req, res, next) {
             subcatProductsObj[subcat.name] = [];
             Product.find({ subcatId: req.params.id }, function(err, products) {
                 if (!err) {
-                    subcatProductsObj[subcat.name] = products;
-                    res.json({ result: subcatProductsObj });
+                    // subcatProductsObj[subcat.name] = products;
+                    res.json(products);
                 } else {
                     res.status(404).json(err);
                 }
