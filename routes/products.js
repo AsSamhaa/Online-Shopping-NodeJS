@@ -1,17 +1,9 @@
 var express = require('express');
 var Product = require('../models/product');
+var Subcategory = require('../models/subcategory');
+var Order = require('../models/order');
 var router = express.Router();
 
-/* name
-   price
-   amountAvailable
-   description
-   image
-   sellerId
-   subcatId
-   orderId
-   userId
-*/
 
 router.use((req, res, next) => {
    req.userId = '5ab80499821daa065d66ea0f';
@@ -25,20 +17,20 @@ router.get('/:id', function(req, res, next) {
     Product.findOne({ _id: req.params.id }, function(err, result) {
         if (!err) {
             product = result;
-            res.json(result);
+            res.json(result );
         } else
             res.json(err);
-    });
-    // to remove sensitive data if user is not the seller of the product
-    // product.sellerName = product.sellerId.populate().name;
-    // product.subcatName = product.subcatId.populate().name;
-    // if (req.userId != product.sellerId) {
-    //     delete product.subcatId;
-    //     delete product.sellerId;
-    //     delete product.orderId;
-    //     delete product.userId;
-    // } else
-    //     res.status(403).json({ result: 'user is not authenticated' });
+    })
+//     // to remove sensitive data if user is not the seller of the product
+//     // product.sellerName = product.sellerId.populate().name;
+//     // product.subcatName = product.subcatId.populate().name;
+//     // if (req.userId != product.sellerId) {
+//     //     delete product.subcatId;
+//     //     delete product.sellerId;
+//     //     delete product.orderId;
+//     //     delete product.userId;
+//     // } else
+//     //     res.status(403).json({ result: 'user is not authenticated' });
 });
 
 /************************ add product info ************************/
@@ -51,8 +43,8 @@ router.post('/add', function(req, res, next) {
             amountAvailable: req.body.amountAvailable,
             description: req.body.description,
             image: req.body.image,
-            sellerId: req.body.sellerId
-            //subcatId:
+            sellerId: req.body.sellerId,
+            subcatId: req.body.subcategory,
             //orderId:
             //userId:
         });
@@ -94,63 +86,78 @@ router.post('/edit/:id', function(req, res, next) {
         });
 });
 
-// name
-// price
-// amountAvailable
-// description
-// image
-// sumRate
-// counter
-// sellerId
-// subcatId
-// orderId
-// ratings
-
-// userId
-// rate
-
-// rate
+// to rate a product
 router.post('/rate/:id', function(req, res, next) {
-    var matchedUserRateObj = {}
     Product.findOne(
         { _id: req.params.id },
         function(err, product) {
             if (!err) {
+                // the rating is found
                 if (product) {
-                    // ratings = product.ratings;
-                    console.log('product: ', product.ratings);
                     prevRating = {}
+                    // ratings = product.ratings;
                     for (rating of product.ratings) {
                         if (rating.userId == req.userId) {
-                            prevRating = rating;
+                            // exctracted the use rating and saved to prevRating
+                            prevRating = rating.rate;
+                            break;
                         }
                     }
-                    if (prevRating) {
-                        // the rating is found
-                        Product.findOneAndUpdate(
-                            { _id: req.params.id },
-                            {
-                                $inc: { sumRate: (-1 * prevRating.rate), counter: -1 },
-                                $pull: { ratings: { userId: req.userId } },
-                                $push: { ratings: { userId: req.userId, rate: req.body.rate } }
-                            },
-                            function(err, result) {
-                                if (!err) {
-                                    res.json({ result: 'product rated' });
-                                } else
-                                    res.status(404).json(err);
-                                   
-                         });
-                    } else {
-                        // the rating is not found
-                    }
-                    var isExists = product.ratings.includes({
-                        'userId': '5ab80499821daa065d66ea0f',
-                        'rate': 4
-                });
-                    res.json({ 'product': product, 'isExists': isExists });
+                    console.log("My rating",req.body.rate)
+                    console.log("My prev rating",prevRating)
+                    prevRating=0;
+                    Product.bulkWrite([
+                        {   
+                            updateOne: {
+                                filter: { _id: req.params.id },
+                                update:
+                                {
+                                    $inc: { 
+                                        sumOfRates: 
+                                            prevRating ?
+                                            (req.body.rate - prevRating.rate) :
+                                            req.body.rate,
+                                        ratesCounter: prevRating ? 0 : 1
+                                    },
+                                    $pull: { ratings: { userId: req.userId } }
+                                }
+                            }
+                        },
+                        {
+                            updateOne: {
+                                filter: { _id: req.params.id },
+                                update:
+                                {
+                                    $addToSet: {
+                                        ratings: { userId: req.userId, rate: req.body.rate }
+                                    }
+                                }
+                            }
+                        }
+                    ]).then(function(err, result) {
+                        if (!err) {
+                            //check for condition as conditions are reversed
+                            res.json({ result: 'product rated' });
+                        } else {
+                            res.status(500).json(err);
+                        }
+                    });
+                } else {
+                    res.status(404).json({ result: 'product not found' });
                 }
             } else {
+                res.status(404).json(err);
+            }
+        });
+});
+// to rate a product
+router.get('/trend', function(req, res, next) {
+    Order.find({}/*).sort({ orderDate: 1}).exec(*/,
+        function(err, orders) {
+            if (!err) {
+                res.json({ result: orders });
+            } else {
+                console.log('hi');
                 res.status(404).json(err);
             }
         });
@@ -187,7 +194,7 @@ router.get('/stock/:userId', function(req, res, next) {
     // sellerId = req.params.id;
     Product.find({sellerId:req.params.userId}, function(err, result) {
         if(!err){
-            res.json(result); 
+            res.json(result);
         }else {
             res.json(err);
         }

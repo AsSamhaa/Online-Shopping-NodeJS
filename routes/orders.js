@@ -4,6 +4,27 @@ var Product = require('../models/product');
 var router = express.Router();
 
 
+
+//*******************************Show Seller Orders ****************************//
+router.get('/sellerorders/:id?',function(req, res, next) {
+    console.log("111 in ");
+    var sellerorders =[];
+    Order.find({}).populate({path:'productId',match:{'sellerId':{$eq:"5ab95e2bda28ff74357c2f03"}}}).exec(function(err,result) {
+        console.log("222 inin ");
+        if(!err){
+            for (var i= 0; i < result.length; i++) {
+                if (result[i].productId!=null) {
+                    sellerorders.push(result[i])
+                    console.log(result);
+                    console.log("333 no error");
+                }
+            }           
+        res.json(sellerorders);  
+        }else {
+            res.json(err);
+        }
+    });
+});
 //************* get all orders or specific one and also get order products **********//
 router.get('/:id?', function(req, res, next) {
     if(req.params.id){
@@ -16,10 +37,9 @@ router.get('/:id?', function(req, res, next) {
                 res.json(err);
             }
         }); 
-
     } else {
-        Order.find({}).populate("productId").exec(function(err,result) {
-            if(!err){ 
+        Order.find({}).populate({path:"productId"}).exec(function(err,result) {
+                    if(!err){ 
                 res.json(result);
             }else {
                 res.json(err);
@@ -28,26 +48,32 @@ router.get('/:id?', function(req, res, next) {
     }
 }); 
 //****************************** add order *************************************//
-router.post('/add', function(req, res, next) {
-    // if (req.isAuthenticated) {
-    //     // statement
-    // }
-    console.log(req.body.name);
-    var order = new Order({
-        amount: req.body.amount,
-        userId:'5ab8161bc0e22608af9c6ece', //req.userId          
-        productId: req.body.productId,
-        state: 'ordered',
-    })
-    order.save(function(err, result){
-        if(!err){
-         res.json(result);
-        }else{
-            res.json(err);
-        }
-    }) 
+// just for testing
+router.use(function(req, res, next) {
+    req.userId = '5ab8161bc0e22608af9c6ece';
+    next();
 });
 
+router.post('/add', function(req, res, next) {
+    if (req.userId) {
+        console.log(req.body.name);
+        var order = new Order({
+            amount: req.body.amount,
+            userId:req.userId,          
+            productId: req.body.productId,
+            state: 'ordered',
+        })
+        order.save(function(err, result){
+            if (!err){
+                res.json({ result: result });
+            } else {
+                res.status(403).json(err);
+            }
+        });
+    } else {
+        res.status(403).json({ result: 'user is not authenticated' });
+    }
+});
 
 //**********************   edit order state  ************************************//
 router.post('/edit/:id', function(req, res, next) {
@@ -74,5 +100,4 @@ router.post('/edit/:id', function(req, res, next) {
             }
         })
 });
-
 module.exports = router;
