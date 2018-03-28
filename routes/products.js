@@ -95,7 +95,6 @@ router.post('/rate/:id', function(req, res, next) {
                 // the rating is found
                 if (product) {
                     prevRating = {}
-                    // ratings = product.ratings;
                     for (rating of product.ratings) {
                         if (rating.userId == req.userId) {
                             // exctracted the use rating and saved to prevRating
@@ -146,14 +145,19 @@ router.post('/rate/:id', function(req, res, next) {
             }
         });
 });
-// to rate a product
+
+// to get trending products
 router.get('/trend', function(req, res, next) {
-    Order.find({}/*).sort({ orderDate: 1}).exec(*/,
+    Order.aggregate([
+        { $match: { orderDate: { $gt: new Date(new Date() - 1000 * 60 * 60 * 24 * 30 ) } } },
+        { $group: { _id: '$productId', sum: { $sum: 1 } } },
+        { $sort: { sum: -1 } },
+        { $limit: 10 },
+    ]).exec(
         function(err, orders) {
             if (!err) {
-                res.json({ result: orders });
+                res.json({ result: products });
             } else {
-                console.log('hi');
                 res.status(404).json(err);
             }
         });
