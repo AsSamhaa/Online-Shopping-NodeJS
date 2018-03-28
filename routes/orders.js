@@ -28,24 +28,31 @@ router.get('/:id?', function(req, res, next) {
     }
 }); 
 //****************************** add order *************************************//
+// just for testing
+router.use(function(req, res, next) {
+    req.userId = '5ab8161bc0e22608af9c6ece';
+    next();
+});
+
 router.post('/add', function(req, res, next) {
-    // if (req.isAuthenticated) {
-    //     // statement
-    // }
-    console.log(req.body.name);
-    var order = new Order({
-        amount: req.body.amount,
-        userId:'5ab8161bc0e22608af9c6ece', //req.userId          
-        productId: req.body.productId,
-        state: 'ordered',
-    })
-    order.save(function(err, result){
-        if(!err){
-         res.json(result);
-        }else{
-            res.json(err);
-        }
-    }) 
+    if (req.userId) {
+        console.log(req.body.name);
+        var order = new Order({
+            amount: req.body.amount,
+            userId:req.userId,          
+            productId: req.body.productId,
+            state: 'ordered',
+        })
+        order.save(function(err, result){
+            if (!err){
+                res.json({ result: result });
+            } else {
+                res.status(403).json(err);
+            }
+        });
+    } else {
+        res.status(403).json({ result: 'user is not authenticated' });
+    }
 });
 
 
