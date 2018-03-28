@@ -96,15 +96,20 @@ router.get('/:id/showsubs',function(req,res,next){
  * to turn nested callbacks into promises
  * to reduce the array of products and truncate some sensitive fields
 */
-router.get('/subcat/:id', function(req, res, next) {
+router.get('/subcat/:id/:page', function(req, res, next) {
     subcatProductsObj = {}
     Subcategory.findOne({ _id: req.params.id }, function(err, subcat) {
+        var prodPerPage=1
         if (!err && subcat != null) {
             subcatProductsObj[subcat.name] = [];
-            Product.find({ subcatId: req.params.id }, function(err, products) {
+            Product.find({ subcatId: req.params.id }).skip((req.params.page-1)*prodPerPage).limit(prodPerPage).exec(function(err, products) {
                 if (!err) {
+                    Product.find({ subcatId: req.params.id }).count().exec(function(err, count) {
+                        res.json({products: products,
+                                pages:count/prodPerPage });
+                    })
                     // subcatProductsObj[subcat.name] = products;
-                    res.json(products);
+                    
                 } else {
                     res.status(404).json(err);
                 }
