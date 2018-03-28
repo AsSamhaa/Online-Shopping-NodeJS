@@ -1,9 +1,9 @@
 var express = require('express');
 var Product = require('../models/product');
 var Subcategory = require('../models/subcategory');
+var Category = require('../models/category');
 var Order = require('../models/order');
 var router = express.Router();
-
 
 router.use((req, res, next) => {
    req.userId = '5ab80499821daa065d66ea0f';
@@ -196,15 +196,35 @@ router.get('/delete/:id?', function(req, res, next) {
 });
 
 //*********text search for specific product ************************//
-router.post('/search', function(req, res, next) {
-    Product.find({name :{$regex:req.body.search}},function(err, result){
-        if(!err){
-            res.json(result);
-        }else {
-            res.json(err);
-        }
-    })
-});
+router.get('/search/:regex?', function(req, res, next) {
+    if(req.params.regex){
+        var sellerorders=[];
+        Product.find({name :{$regex:req.params.regex}},function(err, result){
+            if(!err){
+                sellerorders.push(result);
+                    Category.find({categoryName :{$regex:req.params.regex}},function(err, result){
+                         if(!err){
+                             sellerorders.push(result);
+                         }else {
+                               res.json(err);
+                        }
+                    })
+                        Subcategory.find({name :{$regex:req.params.regex}},function(err, result){
+                            if(!err){
+                                sellerorders.push(result);
+                            }else {
+                                res.json(err);
+                            }
+                        res.json(sellerorders);
+                        })
+    
+            }else {
+                res.json(err);
+            }
+        })
+    }else
+        res.status(404).json({result:'Not found'});
+    });
 //******************************Seller Shelf ***************************//
 router.get('/stock/:userId/:page', function(req, res, next) {
     // sellerId = req.params.id;
