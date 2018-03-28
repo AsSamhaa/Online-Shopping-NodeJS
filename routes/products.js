@@ -12,15 +12,15 @@ router.use((req, res, next) => {
 
 // get single product info
 /* + need to add pagination */
-// router.get('/:id', function(req, res, next) {
-//     var product;
-//     Product.findOne({ _id: req.params.id }, function(err, result) {
-//         if (!err) {
-//             product = result;
-//             res.json({ result: result });
-//         } else
-//             res.json(err);
-//     });
+router.get('/:id', function(req, res, next) {
+    var product;
+    Product.findOne({ _id: req.params.id }, function(err, result) {
+        if (!err) {
+            product = result;
+            res.json(result );
+        } else
+            res.json(err);
+    })
 //     // to remove sensitive data if user is not the seller of the product
 //     // product.sellerName = product.sellerId.populate().name;
 //     // product.subcatName = product.subcatId.populate().name;
@@ -31,7 +31,7 @@ router.use((req, res, next) => {
 //     //     delete product.userId;
 //     // } else
 //     //     res.status(403).json({ result: 'user is not authenticated' });
-// });
+});
 
 /************************ add product info ************************/
 router.post('/add', function(req, res, next) {
@@ -98,12 +98,15 @@ router.post('/rate/:id', function(req, res, next) {
                     for (rating of product.ratings) {
                         if (rating.userId == req.userId) {
                             // exctracted the use rating and saved to prevRating
-                            prevRating = rating;
+                            prevRating = rating.rate;
                             break;
                         }
                     }
+                    console.log("My rating",req.body.rate)
+                    console.log("My prev rating",prevRating)
+                    prevRating=0;
                     Product.bulkWrite([
-                        {
+                        {   
                             updateOne: {
                                 filter: { _id: req.params.id },
                                 update:
@@ -132,6 +135,7 @@ router.post('/rate/:id', function(req, res, next) {
                         }
                     ]).then(function(err, result) {
                         if (!err) {
+                            //check for condition as conditions are reversed
                             res.json({ result: 'product rated' });
                         } else {
                             res.status(500).json(err);
@@ -194,7 +198,7 @@ router.get('/stock/:userId', function(req, res, next) {
     // sellerId = req.params.id;
     Product.find({sellerId:req.params.userId}, function(err, result) {
         if(!err){
-            res.json(result); 
+            res.json(result);
         }else {
             res.json(err);
         }
