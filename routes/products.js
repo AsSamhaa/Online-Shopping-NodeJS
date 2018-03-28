@@ -12,15 +12,15 @@ router.use((req, res, next) => {
 
 // get single product info
 /* + need to add pagination */
-// router.get('/:id', function(req, res, next) {
-//     var product;
-//     Product.findOne({ _id: req.params.id }, function(err, result) {
-//         if (!err) {
-//             product = result;
-//             res.json(result );
-//         } else
-//             res.json(err);
-//     })
+router.get('/:id', function(req, res, next) {
+    var product;
+    Product.findOne({ _id: req.params.id }, function(err, result) {
+        if (!err) {
+            product = result;
+            res.json(result );
+        } else
+            res.json(err);
+    })
 // //     // to remove sensitive data if user is not the seller of the product
 // //     // product.sellerName = product.sellerId.populate().name;
 // //     // product.subcatName = product.subcatId.populate().name;
@@ -31,7 +31,7 @@ router.use((req, res, next) => {
 // //     //     delete product.userId;
 // //     // } else
 // //     //     res.status(403).json({ result: 'user is not authenticated' });
-// });
+});
 
 /************************ add product info ************************/
 router.post('/add', function (req, res, next) {
@@ -171,41 +171,25 @@ router.post('/rate/:id', function (req, res, next) {
 });
 
 // to get trending products
-router.get('/trend', function (req, res, next) {
-    Order.aggregate([{
-            $match: {
-                orderDate: {
-                    $gt: new Date(new Date() - 1000 * 60 * 60 * 24 * 30)
-                }
-            }
-        },
-        {
-            $group: {
-                _id: '$productId',
-                ordersSum: {
-                    $sum: '$amount'
-                }
-            }
-        },
-        // { $project: {
-        //     name: 1,
-        //     price: 1,
-        //     amountAvailable: 1,
-        //     description: 1,
-        //     image: 1,
-        //     sumOfRates: 1,
-        //     ratesCounter: 1,
-        //     sellerId: 1,
-        //     subcatId: 1
-        // } },
-        {
-            $sort: {
-                ordersSum: -1
-            }
-        },
-        {
-            $limit: 10
-        },
+router.get('/trend', function(req, res, next) {
+    Order.aggregate([
+        { $match: { orderDate: { $gt: new Date(new Date() - 1000 * 60 * 60 * 24 * 30) } } },
+        { $group: { 
+            _id: '$productId',
+            ordersSum: { $sum: '$amount' },
+        } },
+        { $sort: { ordersSum: -1 } },
+        { $lookup: {
+            from: 'products',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'prodPopArr'
+        } },
+        { $replaceRoot: {
+            newRoot:
+                { $arrayElemAt: [ '$prodPopArr', 0 ] }
+        } },
+        { $limit: 10 },
     ]).exec(
         function (err, products) {
             if (!err) {
