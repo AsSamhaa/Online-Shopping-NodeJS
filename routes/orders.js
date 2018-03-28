@@ -55,7 +55,6 @@ router.post('/add', function(req, res, next) {
     }
 });
 
-
 //**********************   edit order state  ************************************//
 router.post('/edit/:id', function(req, res, next) {
     var id = req.params.id;
