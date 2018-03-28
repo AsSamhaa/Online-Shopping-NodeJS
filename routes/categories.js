@@ -2,6 +2,7 @@ var express = require('express');
 var Category = require('../models/category');
 var Subcategory = require('../models/subcategory');
 var Product = require('../models/product');
+var Seller = require('../models/seller');
 var router = express.Router();
 
 /************** get category all or specific one  **********************/
@@ -87,29 +88,41 @@ router.get('/:id/showsubs',function(req,res,next){
     }
 });
 //*********************show products of specific subcategory ****************//
-
-
-
-
 // show products of a specific subcategory
 /*!!!!!!!!!!!!!!
  * to turn nested callbacks into promises
  * to reduce the array of products and truncate some sensitive fields
+ * to change the pagination method from 'skip' and 'limit' to range based
+ * need to change the ref field for Seller from sellerId to seller
 */
-router.get('/subcat/:id/:page', function(req, res, next) {
-    subcatProductsObj = {}
+router.get('/subcat/:id/:page?', function(req, res, next) {
     Subcategory.findOne({ _id: req.params.id }, function(err, subcat) {
-        var prodPerPage=1
+        var prodPerPage = 1;
         if (!err && subcat != null) {
-            subcatProductsObj[subcat.name] = [];
-            Product.find({ subcatId: req.params.id }).skip((req.params.page-1)*prodPerPage).limit(prodPerPage).exec(function(err, products) {
+            Product.find({ subcatId: req.params.id }).
+            skip(((req.params.page ? req.params.page : 1) - 1) * prodPerPage).
+            limit(prodPerPage).
+            exec(function(err, products) {
                 if (!err) {
-                    Product.find({ subcatId: req.params.id }).count().exec(function(err, count) {
-                        res.json({products: products,
-                                pages:Math.ceil(count/prodPerPage) });
-                    })
-                    // subcatProductsObj[subcat.name] = products;
-                    
+                    Product.find({ subcatId: req.params.id }).
+                    count().
+                    exec(function(err, count) {
+                        if (!err) {
+                            Seller.populate(products, { path: 'sellerId', },
+                                (err, modProducts) => {
+                                    if (!err) {
+                                        objToSend = {}
+                                        objToSend[subcat.name] = modProducts;
+                                        objToSend.pages = Math.ceil(count / prodPerPage);
+                                        res.json({ result: objToSend });
+                                    } else {
+                                        res.status(404).json(err);
+                                    }
+                                });
+                        } else {
+                            res.status(404).json(err);
+                        }
+                    });
                 } else {
                     res.status(404).json(err);
                 }
