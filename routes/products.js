@@ -187,7 +187,7 @@ router.get('/stock/:userId', function(req, res, next) {
     // sellerId = req.params.id;
     Product.find({sellerId:req.params.userId}, function(err, result) {
         if(!err){
-            res.json(result); 
+            res.json(result);
         }else {
             res.json(err);
         }
