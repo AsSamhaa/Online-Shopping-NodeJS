@@ -154,19 +154,21 @@ router.post('/rate/:id', function(req, res, next) {
 router.get('/trend', function(req, res, next) {
     Order.aggregate([
         { $match: { orderDate: { $gt: new Date(new Date() - 1000 * 60 * 60 * 24 * 30) } } },
-        { $group: { _id: '$productId', ordersSum: { $sum: '$amount' } } },
-        // { $project: {
-        //     name: 1,
-        //     price: 1,
-        //     amountAvailable: 1,
-        //     description: 1,
-        //     image: 1,
-        //     sumOfRates: 1,
-        //     ratesCounter: 1,
-        //     sellerId: 1,
-        //     subcatId: 1
-        // } },
+        { $group: { 
+            _id: '$productId',
+            ordersSum: { $sum: '$amount' },
+        } },
         { $sort: { ordersSum: -1 } },
+        { $lookup: {
+            from: 'products',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'prodPopArr'
+        } },
+        { $replaceRoot: {
+            newRoot:
+                { $arrayElemAt: [ '$prodPopArr', 0 ] }
+        } },
         { $limit: 10 },
     ]).exec(
         function(err, products) {
