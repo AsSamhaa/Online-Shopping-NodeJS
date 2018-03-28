@@ -6,8 +6,8 @@ var router = express.Router();
 
 
 router.use((req, res, next) => {
-   req.userId = '5ab80499821daa065d66ea0f';
-   next();
+    req.userId = '5ab80499821daa065d66ea0f';
+    next();
 });
 
 // get single product info
@@ -34,7 +34,7 @@ router.use((req, res, next) => {
 // });
 
 /************************ add product info ************************/
-router.post('/add', function(req, res, next) {
+router.post('/add', function (req, res, next) {
     if (req.userId) {
         console.log(req.body.name);
         var product = new Product({
@@ -48,49 +48,59 @@ router.post('/add', function(req, res, next) {
             //orderId:
             //userId:
         });
-        product.save(function(err, result){
+        product.save(function (err, result) {
             if (!err) {
-                res.json({result: 'product added'});
+                res.json({
+                    result: 'product added'
+                });
             } else {
                 res.json(err);
             }
         });
     } else {
-        res.status(403).json({ result: 'You don\'t have enough permissions'});
+        res.status(403).json({
+            result: 'You don\'t have enough permissions'
+        });
     }
 });
 
 /************************* edit product info **************************8*/
-router.post('/edit/:id', function(req, res, next) {
+router.post('/edit/:id', function (req, res, next) {
     var id = req.params.id;
     //res.send(req.body)
     console.log(req.body)
     console.log(req.body.name);
     console.log(req.params.id);
-    Product.update(
-        { _id: id },
-        { "$set": {
+    Product.update({
+            _id: id
+        }, {
+            "$set": {
                 name: req.body.name,
                 price: req.body.price,
                 description: req.body.description,
                 image: req.body.image
             }
         },
-        function(err,result) {
+        function (err, result) {
             if (!err) {
-                res.json({result:"product edited"});
+                res.json({
+                    result: "product edited"
+                });
             } else {
                 console.log(err)
-                res.json({result:"failed to edit"});
+                res.json({
+                    result: "failed to edit"
+                });
             }
         });
 });
 
 // to rate a product
-router.post('/rate/:id', function(req, res, next) {
-    Product.findOne(
-        { _id: req.params.id },
-        function(err, product) {
+router.post('/rate/:id', function (req, res, next) {
+    Product.findOne({
+            _id: req.params.id
+        },
+        function (err, product) {
             if (!err) {
                 // the rating is found
                 if (product) {
@@ -102,47 +112,57 @@ router.post('/rate/:id', function(req, res, next) {
                             break;
                         }
                     }
-                    console.log("My rating",req.body.rate)
-                    console.log("My prev rating",prevRating)
-                    prevRating=0;
-                    Product.bulkWrite([
-                        {   
+                    console.log("My rating", req.body.rate)
+                    console.log("My prev rating", prevRating)
+                    prevRating = 0;
+                    Product.bulkWrite([{
                             updateOne: {
-                                filter: { _id: req.params.id },
-                                update:
-                                {
-                                    $inc: { 
-                                        sumOfRates: 
-                                            prevRating ?
-                                            (req.body.rate - prevRating.rate) :
-                                            req.body.rate,
+                                filter: {
+                                    _id: req.params.id
+                                },
+                                update: {
+                                    $inc: {
+                                        sumOfRates: prevRating ?
+                                            (req.body.rate - prevRating.rate) : req.body.rate,
                                         ratesCounter: prevRating ? 0 : 1
                                     },
-                                    $pull: { ratings: { userId: req.userId } }
+                                    $pull: {
+                                        ratings: {
+                                            userId: req.userId
+                                        }
+                                    }
                                 }
                             }
                         },
                         {
                             updateOne: {
-                                filter: { _id: req.params.id },
-                                update:
-                                {
+                                filter: {
+                                    _id: req.params.id
+                                },
+                                update: {
                                     $addToSet: {
-                                        ratings: { userId: req.userId, rate: req.body.rate }
+                                        ratings: {
+                                            userId: req.userId,
+                                            rate: req.body.rate
+                                        }
                                     }
                                 }
                             }
                         }
-                    ]).then(function(err, result) {
+                    ]).then(function (err, result) {
                         if (!err) {
                             //check for condition as conditions are reversed
-                            res.json({ result: 'product rated' });
+                            res.json({
+                                result: 'product rated'
+                            });
                         } else {
                             res.status(500).json(err);
                         }
                     });
                 } else {
-                    res.status(404).json({ result: 'product not found' });
+                    res.status(404).json({
+                        result: 'product not found'
+                    });
                 }
             } else {
                 res.status(404).json(err);
@@ -151,10 +171,22 @@ router.post('/rate/:id', function(req, res, next) {
 });
 
 // to get trending products
-router.get('/trend', function(req, res, next) {
-    Order.aggregate([
-        { $match: { orderDate: { $gt: new Date(new Date() - 1000 * 60 * 60 * 24 * 30) } } },
-        { $group: { _id: '$productId', ordersSum: { $sum: '$amount' } } },
+router.get('/trend', function (req, res, next) {
+    Order.aggregate([{
+            $match: {
+                orderDate: {
+                    $gt: new Date(new Date() - 1000 * 60 * 60 * 24 * 30)
+                }
+            }
+        },
+        {
+            $group: {
+                _id: '$productId',
+                ordersSum: {
+                    $sum: '$amount'
+                }
+            }
+        },
         // { $project: {
         //     name: 1,
         //     price: 1,
@@ -166,12 +198,20 @@ router.get('/trend', function(req, res, next) {
         //     sellerId: 1,
         //     subcatId: 1
         // } },
-        { $sort: { ordersSum: -1 } },
-        { $limit: 10 },
+        {
+            $sort: {
+                ordersSum: -1
+            }
+        },
+        {
+            $limit: 10
+        },
     ]).exec(
-        function(err, products) {
+        function (err, products) {
             if (!err) {
-                res.json({ result: products });
+                res.json({
+                    result: products
+                });
             } else {
                 res.status(404).json(err);
             }
@@ -179,41 +219,67 @@ router.get('/trend', function(req, res, next) {
 });
 
 /************************* delete product ********************************/
-router.get('/delete/:id?', function(req, res, next) {
-    if(req.params.id){
-        Product.remove({ _id: req.params.id }, function(err,data) {
+router.get('/delete/:id?', function (req, res, next) {
+    if (req.params.id) {
+        Product.remove({
+            _id: req.params.id
+        }, function (err, data) {
             if (!err) {
-                res.json({result:"deleted"});
+                res.json({
+                    result: "deleted"
+                });
             } else {
-                res.status(404).json({result:'Not found'});
-            } 
+                res.status(404).json({
+                    result: 'Not found'
+                });
+            }
         });
     } else {
-        res.status(404).json({result:'Not found'});
+        res.status(404).json({
+            result: 'Not found'
+        });
     }
 });
 
 //*********text search for specific product ************************//
-router.post('/search', function(req, res, next) {
-    Product.find({name :{$regex:req.body.search}},function(err, result){
-        if(!err){
-            res.json(result);
-        }else {
+router.get('/search/:search/:page', function (req, res, next) {
+    var prodPerPage = 2;
+    Product.find({
+        name: {
+            $regex: req.params.search
+        }
+    }).skip((req.params.page - 1) * prodPerPage).limit(prodPerPage).exec(function (err, result) {
+        if (!err) {
+            Product.find({
+                name: {
+                    $regex: req.params.search
+                }
+            }).count().exec(function (err, count) {
+                res.json({
+                    products: result,
+                    pages: Math.ceil(count / prodPerPage)
+                })
+            })
+        } else {
             res.json(err);
         }
     })
 });
 //******************************Seller Shelf ***************************//
-router.get('/stock/:userId/:page', function(req, res, next) {
+router.get('/stock/:userId/:page', function (req, res, next) {
     // sellerId = req.params.id;
-    var prodPerPage=5;
-    Product.find({sellerId:req.params.userId}).skip((req.params.page-1)*prodPerPage).limit(prodPerPage).exec(function(err, result) {
-        if(!err){
-            Product.find().count().exec(function(err, count) {
-                res.json({products: result,
-                        pages:Math.ceil(count/prodPerPage) });
+    var prodPerPage = 2;
+    Product.find({
+        sellerId: req.params.userId
+    }).skip((req.params.page - 1) * prodPerPage).limit(prodPerPage).exec(function (err, result) {
+        if (!err) {
+            Product.find().count().exec(function (err, count) {
+                res.json({
+                    products: result,
+                    pages: Math.ceil(count / prodPerPage)
+                });
             })
-        }else {
+        } else {
             res.json(err);
         }
     });
