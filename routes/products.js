@@ -2,6 +2,7 @@ var express = require('express');
 var Product = require('../models/product');
 var Subcategory = require('../models/subcategory');
 var Order = require('../models/order');
+var Seller = require('../models/seller');
 var router = express.Router();
 
 
@@ -12,26 +13,33 @@ router.use((req, res, next) => {
 
 // get single product info
 /* + need to add pagination */
-// router.get('/:id', function(req, res, next) {
-//     var product;
-//     Product.findOne({ _id: req.params.id }, function(err, result) {
-//         if (!err) {
-//             product = result;
-//             res.json(result );
-//         } else
-//             res.json(err);
-//     })
-// //     // to remove sensitive data if user is not the seller of the product
-// //     // product.sellerName = product.sellerId.populate().name;
-// //     // product.subcatName = product.subcatId.populate().name;
-// //     // if (req.userId != product.sellerId) {
-// //     //     delete product.subcatId;
-// //     //     delete product.sellerId;
-// //     //     delete product.orderId;
-// //     //     delete product.userId;
-// //     // } else
-// //     //     res.status(403).json({ result: 'user is not authenticated' });
-// });
+router.get('/get/:id', function(req, res, next) {
+    Product.findOne({ _id: req.params.id }, function(err, product) {
+        if (!err) {
+            if (product) {
+                Seller.populate(product, {path: 'sellerId'}, (err, modProduct) => {
+                        if (!err) {
+                        res.json({ result: modProduct });
+                    } else
+                    res.status(500).json(err);
+                });
+            } else {
+                res.status(404).json({ result: 'product is not found' });
+            }
+        } else
+        res.status(500).json(err);
+    });
+//     // to remove sensitive data if user is not the seller of the product
+//     // product.sellerName = product.sellerId.populate().name;
+//     // product.subcatName = product.subcatId.populate().name;
+//     // if (req.userId != product.sellerId) {
+//     //     delete product.subcatId;
+//     //     delete product.sellerId;
+//     //     delete product.orderId;
+//     //     delete product.userId;
+//     // } else
+//     //     res.status(403).json({ result: 'user is not authenticated' });
+});
 
 /************************ add product info ************************/
 router.post('/add', function(req, res, next) {
@@ -199,7 +207,7 @@ router.get('/delete/:id?', function(req, res, next) {
 router.post('/search', function(req, res, next) {
     Product.find({name :{$regex:req.body.search}},function(err, result){
         if(!err){
-            res.json(result);
+            res.json({ result: result });
         }else {
             res.json(err);
         }
