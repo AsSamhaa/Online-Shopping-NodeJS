@@ -206,12 +206,15 @@ router.post('/search', function(req, res, next) {
     })
 });
 //******************************Seller Shelf ***************************//
-router.get('/stock/:userId', function(req, res, next) {
-    // console.log("here");
+router.get('/stock/:userId/:page', function(req, res, next) {
     // sellerId = req.params.id;
-    Product.find({sellerId:req.params.userId}, function(err, result) {
+    var prodPerPage=5;
+    Product.find({sellerId:req.params.userId}).skip((req.params.page-1)*prodPerPage).limit(prodPerPage).exec(function(err, result) {
         if(!err){
-            res.json(result);
+            Product.find().count().exec(function(err, count) {
+                res.json({products: result,
+                        pages:Math.ceil(count/prodPerPage) });
+            })
         }else {
             res.json(err);
         }
