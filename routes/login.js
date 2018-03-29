@@ -61,7 +61,7 @@ if(typeof useremail !== "undefined" && typeof userpass !== "undefined")
                 }else
                 {
                         //check in seller model
-                        SellerModel.findOne({email:useremail},{password:userpass},function(err,userdata){
+                        SellerModel.findOne({$and:[{"email":useremail},{"password":userpass}]},function(err,userdata){
                             if(!err)
                             {
                                 console.log('seller',userdata);
@@ -75,6 +75,7 @@ if(typeof useremail !== "undefined" && typeof userpass !== "undefined")
                                             user_data.image=userdata.image;
                                             user_data.address=userdata.address;
                                             user_data.isseller=true;
+                                            console.log('sellllllllllllll',user_data);
                                             
                                             var user={};
                                             user.email=userdata.email;

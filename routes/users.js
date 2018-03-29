@@ -131,8 +131,8 @@ router.put('/addtocart/:id', function(req, res, next) {
         res.status(403).json({ result: 'user is not authenticated' });
 }); 
 //****************************Show Cart***************************************//
-router.get('/showcart/:id?',function(req, res, next) {
-    User.find({_id:req.params.id}).populate({path:'cart'}).exec(function(err,result) {
+router.get('/showcart',function(req, res, next) {
+    User.find({_id:req.userId}).populate({path:'cart'}).exec(function(err,result) {
         if(!err){
             res.json(result);  
         }else {
