@@ -3,6 +3,7 @@ var Product = require('../models/product');
 var Subcategory = require('../models/subcategory');
 var Category = require('../models/category');
 var Order = require('../models/order');
+var Seller = require('../models/seller');
 var router = express.Router();
 
 router.use((req, res, next) => {
@@ -44,25 +45,76 @@ router.get('/trend', function(req, res, next) {
 });
 // get single product info
 /* + need to add pagination */
-router.get('/:id', function(req, res, next) {
-    var product;
-    Product.findOne({ _id: req.params.id }, function(err, result) {
+router.get('/get/:id', function(req, res, next) {
+    Product.findOne({ _id: req.params.id }, function(err, product) {
         if (!err) {
-            product = result;
-            res.json(result );
+            if (product) {
+                Seller.populate(product, { path: 'sellerId' }, (err, modProduct) => {
+                        if (!err) {
+                        res.json({ result: modProduct });
+                    } else
+                    res.status(500).json(err);
+                });
+            } else {
+                res.status(404).json({ result: 'product is not found' });
+            }
         } else
-            res.json(err);
-    })
-// //     // to remove sensitive data if user is not the seller of the product
-// //     // product.sellerName = product.sellerId.populate().name;
-// //     // product.subcatName = product.subcatId.populate().name;
-// //     // if (req.userId != product.sellerId) {
-// //     //     delete product.subcatId;
-// //     //     delete product.sellerId;
-// //     //     delete product.orderId;
-// //     //     delete product.userId;
-// //     // } else
-// //     //     res.status(403).json({ result: 'user is not authenticated' });
+        res.status(500).json(err);
+    });
+//     // to remove sensitive data if user is not the seller of the product
+//     // product.sellerName = product.sellerId.populate().name;
+//     // product.subcatName = product.subcatId.populate().name;
+//     // if (req.userId != product.sellerId) {
+//     //     delete product.subcatId;
+//     //     delete product.sellerId;
+//     //     delete product.orderId;
+//     //     delete product.userId;
+//     // } else
+//     //     res.status(403).json({ result: 'user is not authenticated' });
+});
+
+// get filtered products
+/*
+ * expected object holding filters
+    {
+        subcatIds: [],
+        min: 3352,
+        max: 3535
+    }
+*/
+router.post('/get', function(req, res, next) {
+    filterOpts = {}
+    filterOpts.price = {}
+    filterOpts.price.$gte = req.body.min ? req.body.min : 0;
+    if (req.body.subcatsIds)
+        filterOpts.subcatId = { $in: req.body.subcatsIds }
+    if (req.body.max)
+        filterOpts.price.$lte = req.body.max;
+    Product.find(filterOpts, function(err, products) {
+        if (!err) {
+            if (products) {
+                Seller.populate(products, { path: 'sellerId' }, (err, modProducts) => {
+                        if (!err) {
+                        res.json({ result: modProducts });
+                    } else
+                    res.status(500).json(err);
+                });
+            } else {
+                res.status(404).json({ result: 'product is not found' });
+            }
+        } else
+        res.status(500).json(err);
+    });
+//     // to remove sensitive data if user is not the seller of the product
+//     // product.sellerName = product.sellerId.populate().name;
+//     // product.subcatName = product.subcatId.populate().name;
+//     // if (req.userId != product.sellerId) {
+//     //     delete product.subcatId;
+//     //     delete product.sellerId;
+//     //     delete product.orderId;
+//     //     delete product.userId;
+//     // } else
+//     //     res.status(403).json({ result: 'user is not authenticated' });
 });
 
 /************************ add product info ************************/
@@ -134,13 +186,12 @@ router.post('/rate/:id', function (req, res, next) {
         },
         function (err, product) {
             if (!err) {
-                // the rating is found
                 if (product) {
                     prevRating = {}
                     for (rating of product.ratings) {
                         if (rating.userId == req.userId) {
-                            // exctracted the use rating and saved to prevRating
-                            prevRating = rating.rate;
+                            // exctracted the user rating and saved to prevRating
+                            prevRating = rating;
                             break;
                         }
                     }
@@ -310,7 +361,7 @@ router.get('/search/:regex?', function(req, res, next) {
         })
     }else
         res.status(404).json({result:'Not found'});
-    });
+});
 //******************************Seller Shelf ***************************//
 router.get('/stock/:userId/:page', function (req, res, next) {
     // sellerId = req.params.id;
