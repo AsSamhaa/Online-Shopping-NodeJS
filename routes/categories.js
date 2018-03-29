@@ -142,6 +142,26 @@ router.get('/warehouse', function(req, res, next) {
             res.json(result); });
 });
 
+router.get('/search/:search/:page', function (req, res, next) {
+    var catPerPage = 2;
+    Category.find({categoryName :{$regex:req.params.search}}).skip((req.params.page - 1) * catPerPage).limit(catPerPage).exec(function (err, result) {
+        if (!err) {
+            Category.find({
+                name: {
+                    $regex: req.params.search
+                }
+            }).count().exec(function (err, count) {
+                res.json({
+                    categories: result,
+                    pages: Math.ceil(count / catPerPage)
+                })
+            })
+        } else {
+            res.json(err);
+        }
+    })
+});
+
 
 // notice here you get the seller id from request ===>>tested
 module.exports = router;

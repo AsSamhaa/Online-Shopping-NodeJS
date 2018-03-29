@@ -1,15 +1,47 @@
 var express = require('express');
 var Product = require('../models/product');
 var Subcategory = require('../models/subcategory');
+var Category = require('../models/category');
 var Order = require('../models/order');
 var router = express.Router();
-
 
 router.use((req, res, next) => {
     req.userId = '5ab80499821daa065d66ea0f';
     next();
 });
 
+// to get trending products
+router.get('/trend', function(req, res, next) {
+    console.log('hiiiiiiiiiiiiii');
+    Order.aggregate([
+        { $match: { orderDate: { $gt: new Date(new Date() - 1000 * 60 * 60 * 24 * 30) } } },
+        { $group: { 
+            _id: '$productId',
+            ordersSum: { $sum: '$amount' },
+        } },
+        { $sort: { ordersSum: -1 } },
+        { $lookup: {
+            from: 'products',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'prodPopArr'
+        } },
+        { $replaceRoot: {
+            newRoot:
+                { $arrayElemAt: [ '$prodPopArr', 0 ] }
+        } },
+        { $limit: 10 },
+    ]).exec(
+        function (err, products) {
+            if (!err) {
+                res.json({
+                    result: products
+                });
+            } else {
+                res.status(404).json(err);
+            }
+        });
+});
 // get single product info
 /* + need to add pagination */
 router.get('/:id', function(req, res, next) {
@@ -172,6 +204,7 @@ router.post('/rate/:id', function (req, res, next) {
 
 // to get trending products
 router.get('/trend', function(req, res, next) {
+    console.log('hiiiiiiiiiiiiii');
     Order.aggregate([
         { $match: { orderDate: { $gt: new Date(new Date() - 1000 * 60 * 60 * 24 * 30) } } },
         { $group: { 
@@ -249,6 +282,35 @@ router.get('/search/:search/:page', function (req, res, next) {
         }
     })
 });
+router.get('/search/:regex?', function(req, res, next) {
+    if(req.params.regex){
+        var sellerorders=[];
+        Product.find({name :{$regex:req.params.regex}},function(err, result){
+            if(!err){
+                sellerorders.push(result);
+                    Category.find({categoryName :{$regex:req.params.regex}},function(err, result){
+                         if(!err){
+                             sellerorders.push(result);
+                         }else {
+                               res.json(err);
+                        }
+                    })
+                        Subcategory.find({subcatName :{$regex:req.params.regex}},function(err, result){
+                            if(!err){
+                                sellerorders.push(result);
+                            }else {
+                                res.json(err);
+                            }
+                        res.json(sellerorders);
+                        })
+    
+            }else {
+                res.json(err);
+            }
+        })
+    }else
+        res.status(404).json({result:'Not found'});
+    });
 //******************************Seller Shelf ***************************//
 router.get('/stock/:userId/:page', function (req, res, next) {
     // sellerId = req.params.id;
