@@ -1,5 +1,8 @@
 var express = require('express');
 var router = express.Router();
+var jwt = require('jsonwebtoken');
+var UserModel = require('../models/user');
+var SellerModel = require('../models/seller');
 
 
 //**************************authentication middle ware************************************************** */
@@ -16,7 +19,10 @@ router.use(function(req,res,next){
           const bearertoken=bearerheader;
           //set token
           req.token=bearertoken;
-          req.user={};
+          // req.user={};
+          req.userId='';
+          req.isSeller=false;
+          req.isUser=false;
           console.log('before verify token');
 
       jwt.verify(req.token,'secretkey',function(err,authdata){
@@ -25,39 +31,47 @@ router.use(function(req,res,next){
               res.send(err);
 
           }else{
+            console.log('token data',authdata);
 
               //check user data
               //select this user from db and check if authdata
               console.log('after verify token');
 
-                  if(authdata.user.seller)
+                  if(authdata.user.isSeller)
                   {
                     console.log('check in seller module ');
                       //check in seller module 
-                      SellerModel.findOne({email:authdata.user.email},{password:authdata.user.pass},function(err,userdata){
+                      SellerModel.findOne({$and:[{"email":authdata.user.email},{"password":authdata.user.pass}]},function(err,userdata){
                           
+                        console.log('auth seller',userdata);
                          if(userdata != null)
                          {
-                            req.user.isSeller=true;
-                            req.user.isAuthenticated=true;
-                            req.user.id=userdata._id;
+                          console.log('iiiiiiiiiid',userdata._id);
+                            // req.user.isSeller=true;
+                            // req.user.isAuthenticated=true;
+                            // req.user.id=userdata._id;
+                            req.userId=userdata._id;
+                            req.isSeller=true;
                             next();
                          }
                           
                       });
                         
 
-                  }else if(authdata.user.isuser)
+                  }else if(authdata.user.isUser)
                   {
                     console.log('check in user module ');
+                   
                         //check in users model
-                        UserModel.findOne({email:authdata.user.email},{password:authdata.user.pass},function(err,userdata){
-                         
+                        UserModel.findOne({$and:[{"email":authdata.user.email},{"password":authdata.user.pass}]},function(err,userdata){
+                          console.log('uuuuuuuuuuiiiiiiiiiid',userdata._id);
                           if(userdata != null)
                           {
-                            req.user.isUser=true;
-                            req.user.isAuthenticated=true;
-                            req.user.id=userdata._id;
+                            // req.user.isUser=true;
+                            // req.user.isAuthenticated=true;
+                            // req.user.id=userdata._id;
+                            req.userId=userdata._id;
+                            req.isUser=true;
                             next();
                           }
                          
@@ -67,15 +81,24 @@ router.use(function(req,res,next){
                     {
                       console.log('check in Social module ');
                           //check in users model
-                          UserModel.findOne({email:authdata.user.email},{socialId:authdata.user.id},function(err,userdata){
+                          UserModel.findOne(
+                            { $and: [
+                              {"email":authdata.user.email},
+                              {"socialId":authdata.user.id}
+                            ]},
+                            function(err,userdata){
+                            console.log('ssssssssuuuuuuuuuuiiiiiiiiiid',userdata);
                             
                             if(userdata != null)
                             {
-                              req.user.socialuser=true;
-                              req.user.isAuthenticated=true;
-                              req.user.id=userdata._id;
-                              console.log(' Social Auth ');
-                               console.log(req.user);
+                              // req.user.socialuser=true;
+                              // req.user.isAuthenticated=true;
+                              // req.user.id=userdata._id;
+                              // console.log(' Social Auth ');
+                              //  console.log(req.user);
+                              req.userId=userdata._id;
+                              console.log('rrrrrrrrrrr',req.userId);
+                              req.socialuser=true;
                                next();
                             }
                             

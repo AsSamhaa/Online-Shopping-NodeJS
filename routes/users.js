@@ -5,6 +5,7 @@ var Seller = require('../models/seller');
 
 var router = express.Router();
 
+ 
 
 // get user info
 /*!!!!!!!!!!!!!!!!!!!!!!!!
@@ -117,6 +118,7 @@ router.get('/delete', function(req, res, next) {
 
 //*********************************add To Cart***********************************//
 router.put('/addtocart/:id', function(req, res, next) {
+    console.log('userid',req.userId);
     if (req.userId) {
         User.update(
             {_id:req.userId}, 
