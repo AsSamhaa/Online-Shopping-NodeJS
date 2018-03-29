@@ -6,6 +6,7 @@
     "start": "nodemon ./bin/www"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.2",
     "cookie-parser": "^1.4.3",
     "debug": "^3.1.0",
@@ -25,6 +26,7 @@
     "nodemailer": "^4.6.3",
     "path": "^0.12.7",
     "serve-favicon": "^2.4.5",
-    "util": "^0.10.3"
+    "util": "^0.10.3",
+    "validator": "^9.4.1"
   }
 }

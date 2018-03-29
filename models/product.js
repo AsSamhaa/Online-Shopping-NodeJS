@@ -1,5 +1,4 @@
 var mongoose = require("mongoose");
-var Seller = require("./seller");
 var Subcategory = require("./subcategory");
 var Order = require("./order");
 var User = require("./user");
@@ -21,7 +20,7 @@ var productSchema = new Schema({
   image: String,
   sumOfRates: Number,
   ratesCounter: Number,
-  sellerId : { type: Schema.Types.ObjectId, ref: "Seller" },
+  sellerId : { type: Schema.Types.ObjectId, ref: "User" },
   subcatId: { type: Schema.Types.ObjectId, ref: "Subcategory" },
   orderId: [{ type: Schema.Types.ObjectId, ref: "Order" }],
   ratings: [rateSchema]
