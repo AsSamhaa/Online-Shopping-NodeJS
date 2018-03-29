@@ -13,7 +13,7 @@ var router = express.Router();
 */
 router.get('/', function(req, res, next) {
     if (req.userId) {
-    	User.find({ _id: req.userId }, function(err, result) {
+    	User.find({ _id: req.userId }, { password: 0 }, function(err, result) {
             if (!err) {
                 res.json({ result: result });
             } else {
@@ -25,80 +25,91 @@ router.get('/', function(req, res, next) {
 });
 
 // add user info
-/*!!!!!!!!!!!!!!!!!!!!!!!!
- * need to add validation of names, password, email, etc..
-*/
 router.post('/add', function(req, res, next) {
     var userObj = {}
-    for (field of Object.keys(req.body)) {
-        userObj[field] = req.body[field];
-    }
-    // if (req.file) {
-    //     userObj.image = req.file.path;
-    // }    
-    var user = new User(userObj);
-    user.save(function(err, result) {
-        if (!err) {
-            res.json({ result: 'user added' });
-        } else
-            res.json(err);
-    });
+        var validationResult = validator.isAlpha(req.body.name) &&
+            validator.isEmail(req.body.email) &&
+            validator.isLength(req.body.password, { min: 8 });
+
+        if (validationResult) {
+            userObj.name = req.body.name;
+            userObj.email = req.body.email;
+            userObj.password = req.body.password;
+            if (req.body.image) {
+                userObj.image = req.body.image;
+            }
+            var user = new User(userObj);
+            user.save(function(err, result) {
+                if (!err) {
+                    res.json({ result: 'user added' });
+                } else
+                    res.status(400).json(err);
+            });
+        } else {
+           res.status(400).json(err);
+        }
 });
 
 // add seller info
 router.post('/add_seller', function(req, res, next) {
     var sellerObj = {}
-    for (field of Object.keys(req.body)) {
-        sellerObj[field] = req.body[field];
-    }
-    // if (req.file) {
-    //     sellerObj.image = req.file.path;
-    // }    
-    var seller = new Seller(sellerObj);
-    seller.save(function(err, result) {
-        if (!err) {
-            console.log('aaaaaaaaaa');
-            res.json({ result: 'seller added' });
+        var validationResult = validator.isAlpha(req.body.name) &&
+            validator.isEmail(req.body.email) &&
+            validator.isLength(req.body.password, { min: 8 }) &&
+            validator.matches(req.body.nationalId, new RegExp(
+                '(2|3)[0-9][1-9][0-1][1-9][0-3][1-9]' +
+                '(01|02|03|04|11|12|13|14|15|16|17|18|19|21|' +
+                '22|23|24|25|26|27|28|29|31|32|33|34|35|88)\\d\\d\\d\\d\\d'));
 
-        } else
-            res.json(err);
-    });
+        if (validationResult) {
+            sellerObj.name = req.body.name;
+            sellerObj.email = req.body.email;
+            sellerObj.password = req.body.password;
+            sellerObj.nationalId = req.body.nationalId;
+            if (req.body.image) {
+                sellerObj.image = req.body.image;
+            }
+            var seller = new Seller(sellerObj);
+            seller.save(function(err, result) {
+                if (!err) {
+                    res.json({ result: 'seller added' });
+                } else
+                    res.status(400).json(err);
+            });
+        } else {
+            res.status(400).json(err);
+        }
 });
 
 // edit user info
-/*!!!!!!!!!!!!!!!!!!!!!
- * need to add validation of names, password, email, etc..
- * need to check for the match of access token and the sent id; to prevent any user
-   from writing over other users info
-*/
 router.post('/edit', function(req, res, next) {
     if (req.userId) {
         var userObj = {}
-        for (field of Object.keys(req.body)) {
-            if (req.body[field] != '') {
-                userObj[field] = req.body[field];
+        var validationResult = validator.isAlpha(req.body.name) &&
+            validator.isEmail(req.body.email) &&
+            validator.isLength(req.body.password, { min: 8 });
+
+        if (validationResult) {
+            userObj.name = req.body.name;
+            userObj.email = req.body.email;
+            if (req.body.password) {
+                userObj.password = req.body.password;
             }
-        }
-        // if (req.file) {
-        //     var oldPicture = User.findOne({ _id: req.userId }, function(err, result) {
-        //         if (!err) {
-        //             if (result.image) {
-        //                 fs.unlinkSync(result.image);
-        //             }
-        //             userObj.image = req.file.path;
-        //         } else
-        //             res.json(err);
-        //     });
-        // }
-        User.update(
-            { _id: req.userId },
-            { $set: userObj },
-            function(err, result) {
-                if (!err) {
-                    res.json({ result: 'user edited' });
-                } else
-                    res.json(err);
+            if (req.body.image) {
+                userObj.image = req.body.image;
+            }
+            User.update(
+                { _id: req.userId },
+                { $set: userObj },
+                function(err, result) {
+                    if (!err) {
+                        res.json({ result: 'user edited' });
+                    } else
+                        res.status(400).json(err);
             });
+        } else {
+            res.status(400).json(err);
+        }
     } else
         res.status(403).json({ result: 'user is not authenticated' });
 });
