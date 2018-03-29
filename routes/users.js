@@ -144,9 +144,11 @@ router.put('/addtocart/:id', function(req, res, next) {
         res.status(403).json({ result: 'user is not authenticated' });
 }); 
 //****************************Show Cart***************************************//
-router.get('/showcart',function(req, res, next) {
-    User.find({_id:req.userId}).populate({path:'cart'}).exec(function(err,result) {
+router.post('/showcart',function(req, res, next) {
+    // console.log('cart id',req.userId);
+    User.findOne({_id:req.userId}).populate({path:'cart'}).exec(function(err,result) {
         if(!err){
+            console.log('user cart',result.cart);
             res.json(result);  
         }else {
             res.json(err);
@@ -157,12 +159,16 @@ router.get('/showcart',function(req, res, next) {
 
 //****************************Remove product from Cart*************************************//
 // pullAll
-router.delete('/removefromcart/:id', function(req, res, next) {
+router.post('/removefromcart/:id', function(req, res, next) {
+    console.log('rrrrrrrrrrr',req.userId);
+    console.log('pppppppp',req.params.id);
     if (req.userId) {
+        console.log('rrrrrrrrrrr',req.userId);
         User.update(
             {_id:req.userId}, 
             {$pullAll: {cart:[req.params.id]}},function (err, result) {
             if(!err){
+                console.log('ressssssssssss',result);
                 res.json(result);
             }else{
                  res.json(err); 

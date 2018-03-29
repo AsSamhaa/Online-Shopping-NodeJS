@@ -71,6 +71,7 @@ router.use(function(req,res,next){
                             // req.user.isAuthenticated=true;
                             // req.user.id=userdata._id;
                             req.userId=userdata._id;
+                            console.log('ui',req.userId);
                             req.isUser=true;
                             next();
                           }
