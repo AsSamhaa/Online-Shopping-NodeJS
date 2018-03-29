@@ -155,7 +155,6 @@ router.post('/rate/:id', function(req, res, next) {
                     }
                     console.log("My rating",req.body.rate)
                     console.log("My prev rating",prevRating)
-                    prevRating=0;
                     Product.bulkWrite([
                         {   
                             updateOne: {
