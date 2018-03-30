@@ -1,5 +1,6 @@
 var express = require('express');
 var fs = require("fs");
+var validator = require("validator");
 var User = require('../models/user');
 var Seller = require('../models/seller');
 var Product = require('../models/product');
@@ -119,7 +120,7 @@ router.post('/edit', function(req, res, next) {
 
 // edit seller info
 router.post('/edit', function(req, res, next) {
-    if (req.userId) {
+    if (req.isSeller) {
         var sellerObj = {}
         var validationResult = validator.isAlpha(req.body.name) &&
             validator.isEmail(req.body.email) &&
