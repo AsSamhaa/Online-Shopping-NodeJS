@@ -1,6 +1,8 @@
 var express = require('express');
 var Order = require('../models/order');
 var Product = require('../models/product');
+var User = require('../models/user');
+
 var router = express.Router();
 
 
@@ -63,7 +65,7 @@ router.get('/:id?', function(req, res, next) {
 // just for testing 
 router.use(function(req, res, next) {
     req.userId = '5aba75a79b32c814c57abae2';
-    req.cartArray =[{productId:"5abd4019c938f32b83d9bd4e",amount:2},{productId:"5abd4028c938f32b83d9bd4f",amount:1  }];
+    req.cartArray =[{productId:"5abd4019c938f32b83d9bd4e",quantity:2},{productId:"5abd4028c938f32b83d9bd4f",quantity:1  }];
     next();
 });
 
@@ -71,10 +73,11 @@ router.post('/add', function(req, res, next) {
     if (req.userId) {
             console.log(req.cartArray.length);
             console.log("resultabove");
+        // User.findOne({})
             // for (var i = 0; i < req.cartArray.length; i++) {
             req.cartArray.forEach((element, index) => {
                 var order = new Order({
-                amount: element.amount,
+                amount: element.quantity,
                 userId:req.userId,          
                 productId: element.productId,
                 state: 'ordered',
@@ -84,12 +87,21 @@ router.post('/add', function(req, res, next) {
                     if (!err){
                     console.log(element.productId);
 
-                    console.log(element.amount);
+                    console.log(element.quantity);
                         Product.update(
                             { _id: element.productId },
-                            { '$inc': {amountAvailable: -1 * element.amount }},function(err,result){
-                                console.log("update done");
-                            });
+                            { '$inc': {amountAvailable: -1 * element.quantity }},function(err,result){
+                                     User.update(
+                                        { _id: req.userId }, 
+                                        { $pull: { cart: { $nin: [] } } },
+                                            function (err, result) {
+                                                if (!err) {
+                                                    console.log("Clear Cart")
+                                                        } else {
+                                                            res.status(400).json(err); 
+                                                        }
+                                                })
+                        });
                     }else {
                         res.status(403).json(err);
                     }
