@@ -48,7 +48,7 @@ router.post('/add', function(req, res, next) {
                     res.status(400).json(err);
             });
         } else {
-           res.status(400).json(err);
+           res.status(400).json({ error: 'email is already used' });
         }
 });
 
