@@ -195,10 +195,10 @@ router.post('/rate/:id', function (req, res, next) {
                             break;
                         }
                     }
-                    console.log("My rating", req.body.rate)
-                    console.log("My prev rating", prevRating)
-                    prevRating = 0;
-                    Product.bulkWrite([{
+                    console.log("My rating",req.body.rate)
+                    console.log("My prev rating",prevRating)
+                    Product.bulkWrite([
+                        {   
                             updateOne: {
                                 filter: {
                                     _id: req.params.id

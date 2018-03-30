@@ -12,7 +12,16 @@ router.get('/sellerorders/:id?/:page?',function(req, res, next) {
     var prodPerPage=2
     var count;
     Order.find({}).count().exec(function(err, res){if(!err){count = res;}})
-    Order.find({}).skip((req.params.page-1)*prodPerPage).limit(prodPerPage).populate({path:'productId',match:{'sellerId':{$eq:"5ab95e2bda28ff74357c2f03"}}}).exec(function(err,result) {
+    Order.find({}).
+    skip((req.params.page-1)*prodPerPage).
+    limit(prodPerPage).
+    populate({
+        path:'productId',
+        match:{
+            'sellerId':{$eq:"5ab95e2bda28ff74357c2f03"}
+        }
+    }).
+    exec(function(err,result) {
         console.log("222 inin ");
         if(!err){
             for (var i= 0; i < result.length; i++) {

@@ -30,7 +30,7 @@ expressserver.post('/login',function(req,res){
 
     console.log('uuuuuuuuuuuuuuuuuuuuuuu',user);
     
-    User.findOne({email:useremail},{socialId:userid},function(err,userdata){
+    User.findOne({$and:[{"email":useremail},{"socialId":userid}]},function(err,userdata){
                     
         console.log('testlogin');
         if(userdata !== null)
