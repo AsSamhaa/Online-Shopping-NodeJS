@@ -45,8 +45,8 @@ router.post('/',function(req,res) {
                             sellerData.isSeller = true;
                             
                             var seller = {};
-                            seller.email = userdata.email;
-                            seller.pass = userdata.password;
+                            seller.email = sellerData.email;
+                            seller.pass = sellerData.password;
                             seller.isSeller = true;
 
                             jwt.sign(
@@ -56,7 +56,7 @@ router.post('/',function(req,res) {
                                     res.json({ token: token, user: sellerData });
                             });
                         } else {
-                            res.staus(403).json({ error: 'not a user' });  
+                            res.status(403).json({ error: 'not a user' });  
                         }
                 });
             }
