@@ -119,7 +119,7 @@ router.post('/rate/:id', function(req, res, next) {
         function(err, product) {
             if (!err) {
                 if (product) {
-                    prevRating = {}
+                    var prevRating = false;
                     for (rating of product.ratings) {
                         if (rating.userId == req.userId) {
                             // exctracted the user rating and saved to prevRating

@@ -178,19 +178,51 @@ router.get('/delete', function(req, res, next) {
 //*********************************add To Cart***********************************//
 // need to set amount along with product
 router.put('/addtocart/:id', function(req, res, next) {
-    var cartObj = {
-        productId:req.params.id,
-        quantity:0
-    }
-    console.log('userid', req.userId);
     if (req.userId) {
         Product.find({ _id: req.params.id }).count((err, count) => {
             if (!err && count) {
+                User.findOne({ _id: req.userId }, (err, user) => {
+                    if (!err) {
+                        var prevCart = false;
+                        for (element of user.cart) {
+                            if (element.productId == req.params.id) {
+                                prevCart = element;
+                                break;
+                            }
+                        }
+                        User.bulkWrite([
+                            { updateOne: {
+                                filter: { _id: req.userId },
+                                update: {
+                                    $pull: { cart: { productId: req.params.id } }
+                                }
+                            } },
+                            { updateOne: {
+                                    filter: { _id: req.userId },
+                                    update: {
+                                        $addToSet: {
+                                            cart: {
+                                                productId: req.params.id,
+                                                quantity: prevCart ? prevCart.quantity + 1 : 1
+                                            }
+                                        }
+                                    }
+                            } }
+                        ]).then((err, result) => {
+                            if (!err) {
+                                res.json({ result: 'product added' });
+                            } else {
+                                res.status(400).json({ error: err.message });
+                            }
+                        });
+                    } else {
+                        res.status(400).json({ error: err.message });
+                    }
+                });
                 User.update(
-                  { _id: req.userId }, 
-                        { $addToSet:
-                        { cart: cartObj }
-                    }, function(err, result) {
+                    { _id: req.userId }, 
+                    { $addToSet: { cart: cartObj } },
+                    function(err, result) {
                         if (!err) {
                             res.json({ result: 'product added to cart' });
                         } else
