@@ -1,6 +1,5 @@
 var mongoose = require("mongoose");
 var User = require("./user");
-var Seller = require("./seller");
 var Product = require("./product");
 
 // ORM Mapping ...

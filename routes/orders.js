@@ -60,29 +60,44 @@ router.get('/:id?', function(req, res, next) {
     }
 }); 
 //****************************** add order *************************************//
-// just for testing
+// just for testing 
 router.use(function(req, res, next) {
-    req.userId = '5ab80499821daa065d66ea0f';
+    // req.userId = '5aba75a79b32c814c57abae2';
+    req.cartArray =[{productId:"5abd4019c938f32b83d9bd4e",amount:2},{productId:"5abd4028c938f32b83d9bd4f",amount:1  }];
     next();
 });
 
 router.post('/add', function(req, res, next) {
     if (req.userId) {
-        console.log(req.body.name);
-        var order = new Order({
-            amount: req.body.amount,
-            userId:req.userId,          
-            productId: req.body.productId,
-            state: 'ordered',
-        })
-        order.save(function(err, result){
-            if (!err){
-                res.json({ result: result });
-            } else {
-                res.status(403).json(err);
-            }
-        });
-    } else {
+            console.log(req.cartArray.length);
+            console.log("resultabove");
+            // for (var i = 0; i < req.cartArray.length; i++) {
+            req.cartArray.forEach((element, index) => {
+                var order = new Order({
+                amount: element.amount,
+                userId:req.userId,          
+                productId: element.productId,
+                state: 'ordered',
+                });
+                order.save(function(err,result){
+                    // console.log(element.amount);
+                    if (!err){
+                    console.log(element.productId);
+
+                    console.log(element.amount);
+                        Product.update(
+                            { _id: element.productId },
+                            { '$inc': {amountAvailable: -1 * element.amount }},function(err,result){
+                                console.log("update done");
+                            });
+                    }else {
+                        res.status(403).json(err);
+                    }
+                })
+            })
+        
+            res.json({ result: "added orders -- products amount updated" });
+    }else {
         res.status(403).json({ result: 'user is not authenticated' });
     }
 });
