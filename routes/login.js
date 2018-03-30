@@ -19,6 +19,7 @@ router.post('/',function(req,res) {
                 var userData = userdata;
                 userData.id = userData._id;
                 delete userData['_id']; // not sure why?!!
+                delete userData['password']; // not sure why?!!
                 userData.isuser = true;
 
                 var user = {}

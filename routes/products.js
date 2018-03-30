@@ -76,7 +76,7 @@ router.post('/get', function(req, res, next) {
     filterOpts.price = {};
     filterOpts.price.$gte = req.body.min ? req.body.min : 0;
     if (req.body.search)
-        filterOpts.name = { $regex: req.params.regex };
+        filterOpts.name = { $regex: req.body.search };
     if (req.body.subcatIds.length != 0)
         filterOpts.subcatId = { $in: req.body.subcatIds };
     if (req.body.max)
@@ -229,6 +229,7 @@ router.get('/trend', function(req, res, next) {
         { $limit: 10 },
     ]).exec(
         function (err, products) {
+            console.log(products)
             if (!err) {
                 res.json({
                     result: products
