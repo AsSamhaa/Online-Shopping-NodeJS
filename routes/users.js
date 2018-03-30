@@ -55,32 +55,32 @@ router.post('/add', function(req, res, next) {
 // add seller info
 router.post('/add_seller', function(req, res, next) {
     var sellerObj = {}
-        var validationResult = validator.isAlpha(req.body.name) &&
-            validator.isEmail(req.body.email) &&
-            validator.isLength(req.body.password, { min: 8 }) &&
-            validator.matches(req.body.nationalId, new RegExp(
-                '(2|3)[0-9][1-9][0-1][1-9][0-3][1-9]' +
-                '(01|02|03|04|11|12|13|14|15|16|17|18|19|21|' +
-                '22|23|24|25|26|27|28|29|31|32|33|34|35|88)\\d\\d\\d\\d\\d'));
+    var validationResult = validator.isAlpha(req.body.name) &&
+        validator.isEmail(req.body.email) &&
+        validator.isLength(req.body.password, { min: 8 }) &&
+        validator.matches(req.body.nationalId, new RegExp(
+            '(2|3)[0-9][1-9][0-1][1-9][0-3][1-9]' +
+            '(01|02|03|04|11|12|13|14|15|16|17|18|19|21|' +
+            '22|23|24|25|26|27|28|29|31|32|33|34|35|88)\\d\\d\\d\\d\\d'));
 
-        if (validationResult) {
-            sellerObj.name = req.body.name;
-            sellerObj.email = req.body.email;
-            sellerObj.password = req.body.password;
-            sellerObj.nationalId = req.body.nationalId;
-            if (req.body.image) {
-                sellerObj.image = req.body.image;
-            }
-            var seller = new Seller(sellerObj);
-            seller.save(function(err, result) {
-                if (!err) {
-                    res.json({ result: 'seller added' });
-                } else
-                    res.status(400).json(err);
-            });
-        } else {
-            res.status(400).json(err);
+    if (validationResult) {
+        sellerObj.name = req.body.name;
+        sellerObj.email = req.body.email;
+        sellerObj.password = req.body.password;
+        sellerObj.nationalId = req.body.nationalId;
+        if (req.body.image) {
+            sellerObj.image = req.body.image;
         }
+        var seller = new Seller(sellerObj);
+        seller.save(function(err, result) {
+            if (!err) {
+                res.json({ result: 'seller added' });
+            } else
+                res.status(400).json(err);
+        });
+    } else {
+        res.status(403).json({ result: 'the product info are not correct' });
+    }
 });
 
 // edit user info
@@ -178,24 +178,46 @@ router.get('/delete', function(req, res, next) {
 //*********************************add To Cart***********************************//
 // need to set amount along with product
 router.put('/addtocart/:id', function(req, res, next) {
-    var cartObj = {
-        productId:req.params.id,
-        quantity:1
-    }
-    console.log('userid', req.userId);
-    console.log('prodId',req.params.id);
     if (req.userId) {
         Product.find({ _id: req.params.id }).count((err, count) => {
             if (!err && count) {
-                User.update(
-                  { _id: req.userId }, 
-                        { $addToSet:
-                        { cart: cartObj }
-                    }, function(err, result) {
-                        if (!err) {
-                            res.json({ result: 'product added' });
-                        } else
-                            res.json(err);
+                User.findOne({ _id: req.userId }, (err, user) => {
+                    if (!err) {
+                        var prevCart = false;
+                        for (element of user.cart) {
+                            if (element.productId == req.params.id) {
+                                prevCart = element;
+                                break;
+                            }
+                        }
+                        User.bulkWrite([
+                            { updateOne: {
+                                filter: { _id: req.userId },
+                                update: {
+                                    $pull: { cart: { productId: req.params.id } }
+                                }
+                            } },
+                            { updateOne: {
+                                    filter: { _id: req.userId },
+                                    update: {
+                                        $addToSet: {
+                                            cart: {
+                                                productId: req.params.id,
+                                                quantity: prevCart ? prevCart.quantity + 1 : 1
+                                            }
+                                        }
+                                    }
+                            } }
+                        ]).then((err, result) => {
+                            if (!err) {
+                                res.json({ result: 'product added' });
+                            } else {
+                                res.status(400).json({ error: err.message });
+                            }
+                        });
+                    } else {
+                        res.status(400).json({ error: err.message });
+                    }
                 });
             } else
                 res.status(404).json(err ? err : { result: 'sorry, no such product' });
