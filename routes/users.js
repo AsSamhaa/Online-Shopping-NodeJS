@@ -184,19 +184,21 @@ router.put('/addtocart/:id', function(req, res, next) {
     }
     console.log('userid', req.userId);
     if (req.userId) {
-        // if (Product.find({ _id: req.params.id }).count() == 1) {
-            User.update(
-                { _id: req.userId }, 
-                { $addToSet:
-                    { cart: cartObj }
-                }, function(err, result) {
-                    if (!err) {
-                        res.json({ result: result });
-                    } else
-                        res.json(err);
-            });
-        // } else
-        //     res.status(404).json({ result: 'sorry, no such product' });
+        Product.find({ _id: req.params.id }).count((err, count) => {
+            if (!err && count) {
+                User.update(
+                  { _id: req.userId }, 
+                        { $addToSet:
+                        { cart: cartObj }
+                    }, function(err, result) {
+                        if (!err) {
+                            res.json({ result: 'product added' });
+                        } else
+                            res.json(err);
+                });
+            } else
+                res.status(404).json(err ? err : { result: 'sorry, no such product' });
+        });
     } else
         res.status(403).json({ result: 'user is not authenticated' });
 }); 
