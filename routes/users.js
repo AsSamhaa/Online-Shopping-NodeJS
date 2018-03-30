@@ -55,32 +55,32 @@ router.post('/add', function(req, res, next) {
 // add seller info
 router.post('/add_seller', function(req, res, next) {
     var sellerObj = {}
-        var validationResult = validator.isAlpha(req.body.name) &&
-            validator.isEmail(req.body.email) &&
-            validator.isLength(req.body.password, { min: 8 }) &&
-            validator.matches(req.body.nationalId, new RegExp(
-                '(2|3)[0-9][1-9][0-1][1-9][0-3][1-9]' +
-                '(01|02|03|04|11|12|13|14|15|16|17|18|19|21|' +
-                '22|23|24|25|26|27|28|29|31|32|33|34|35|88)\\d\\d\\d\\d\\d'));
+    var validationResult = validator.isAlpha(req.body.name) &&
+        validator.isEmail(req.body.email) &&
+        validator.isLength(req.body.password, { min: 8 }) &&
+        validator.matches(req.body.nationalId, new RegExp(
+            '(2|3)[0-9][1-9][0-1][1-9][0-3][1-9]' +
+            '(01|02|03|04|11|12|13|14|15|16|17|18|19|21|' +
+            '22|23|24|25|26|27|28|29|31|32|33|34|35|88)\\d\\d\\d\\d\\d'));
 
-        if (validationResult) {
-            sellerObj.name = req.body.name;
-            sellerObj.email = req.body.email;
-            sellerObj.password = req.body.password;
-            sellerObj.nationalId = req.body.nationalId;
-            if (req.body.image) {
-                sellerObj.image = req.body.image;
-            }
-            var seller = new Seller(sellerObj);
-            seller.save(function(err, result) {
-                if (!err) {
-                    res.json({ result: 'seller added' });
-                } else
-                    res.status(400).json(err);
-            });
-        } else {
-            res.status(400).json(err);
+    if (validationResult) {
+        sellerObj.name = req.body.name;
+        sellerObj.email = req.body.email;
+        sellerObj.password = req.body.password;
+        sellerObj.nationalId = req.body.nationalId;
+        if (req.body.image) {
+            sellerObj.image = req.body.image;
         }
+        var seller = new Seller(sellerObj);
+        seller.save(function(err, result) {
+            if (!err) {
+                res.json({ result: 'seller added' });
+            } else
+                res.status(400).json(err);
+        });
+    } else {
+        res.status(403).json({ result: 'the product info are not correct' });
+    }
 });
 
 // edit user info
@@ -188,7 +188,7 @@ router.put('/addtocart/:id', function(req, res, next) {
                         { cart: req.params.id }
                     }, function(err, result) {
                         if (!err) {
-                            res.json({ result: 'product added' });
+                            res.json({ result: 'product added to cart' });
                         } else
                             res.json(err);
                 });
