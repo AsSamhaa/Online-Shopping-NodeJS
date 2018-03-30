@@ -21,7 +21,7 @@ router.get('/get/:id', function(req, res, next) {
                     if (!err) {
                         res.json({ result: modProduct });
                     } else
-                    res.status(400).json(err);
+                    res.status(400).json({ error: err.message });
                 });
             } else {
                 res.status(404).json({ result: 'product is not found' });
@@ -32,14 +32,6 @@ router.get('/get/:id', function(req, res, next) {
 });
 
 // get filtered products
-/*
- * expected object holding filters
-    {
-        subcatIds: [],
-        min: 3352,
-        max: 3535
-    }
-*/
 router.post('/get', function(req, res, next) {
     filterOpts = {}
     filterOpts.price = {}
@@ -114,6 +106,8 @@ router.post('/edit/:id', function(req, res, next) {
 
 // to rate a product
 router.post('/rate/:id', function(req, res, next) {
+    // to check user rating not to fall out of range
+    req.body.rate = (req.body.rate >= 0 && req.body.rate <= 5) ? req.body.rate : 0;
     Product.findOne(
         { _id: req.params.id },
         function(err, product) {
@@ -122,7 +116,6 @@ router.post('/rate/:id', function(req, res, next) {
                     var prevRating = false;
                     for (rating of product.ratings) {
                         if (rating.userId == req.userId) {
-                            // exctracted the user rating and saved to prevRating
                             prevRating = rating;
                             break;
                         }
@@ -153,14 +146,14 @@ router.post('/rate/:id', function(req, res, next) {
                         if (!err) {
                             res.json({ result: 'product rated' });
                         } else {
-                            res.status(500).json(err);
+                            res.status(400).json({ error: err.message });
                         }
                     });
                 } else {
                     res.status(404).json({ result: 'product not found' });
                 }
             } else {
-                res.status(404).json(err);
+                res.status(404).json({ error: err.message });
             }
         });
 });

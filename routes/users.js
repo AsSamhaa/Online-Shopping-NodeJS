@@ -7,10 +7,10 @@ var Product = require('../models/product');
 
 var router = express.Router();
 
-router.use((req, res, next) => {
-    req.userId = '5aba75a79b32c814c57abae2';
-    next();
-});
+// router.use((req, res, next) => {
+//     req.userId = '5aba75a79b32c814c57abae2';
+//     next();
+// });
 
 // get user info
 router.get('/', function(req, res, next) {
@@ -198,15 +198,15 @@ router.put('/addtocart/:id', function(req, res, next) {
                                 }
                             } },
                             { updateOne: {
-                                    filter: { _id: req.userId },
-                                    update: {
-                                        $addToSet: {
-                                            cart: {
-                                                productId: req.params.id,
-                                                quantity: prevCart ? prevCart.quantity + 1 : 1
-                                            }
+                                filter: { _id: req.userId },
+                                update: {
+                                    $addToSet: {
+                                        cart: {
+                                            productId: req.params.id,
+                                            quantity: prevCart ? prevCart.quantity + 1 : 1
                                         }
                                     }
+                                }
                             } }
                         ]).then((err, result) => {
                             if (!err) {
@@ -219,17 +219,10 @@ router.put('/addtocart/:id', function(req, res, next) {
                         res.status(400).json({ error: err.message });
                     }
                 });
-                User.update(
-                    { _id: req.userId }, 
-                    { $addToSet: { cart: cartObj } },
-                    function(err, result) {
-                        if (!err) {
-                            res.json({ result: 'product added to cart' });
-                        } else
-                            res.json(err);
-                });
             } else
-                res.status(404).json(err ? err : { result: 'sorry, no such product' });
+                res.status(404).json(err.message ?
+                    { error: err.message } :
+                    { result: 'sorry, no such product' });
         });
     } else
         res.status(403).json({ result: 'user is not authenticated' });
