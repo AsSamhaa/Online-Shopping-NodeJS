@@ -178,23 +178,28 @@ router.get('/delete', function(req, res, next) {
 //*********************************add To Cart***********************************//
 // need to set amount along with product
 router.put('/addtocart/:id', function(req, res, next) {
+    var cartObj = {
+        productId:req.params.id,
+        quantity:1
+    }
     console.log('userid', req.userId);
     console.log('prodId',req.params.id);
     if (req.userId) {
-        if (Product.find({ _id: req.params.id }).count()) {
-            console.log("hi")
-            User.update(
-                { _id: req.userId }, 
-                { $addToSet:
-                    { cart: req.params.id }
-                }, function(err, result) {
-                    if (!err) {
-                        res.json({ result: result });
-                    } else
-                        res.json(err);
-            });
-        } else
-            res.status(404).json({ result: 'sorry, no such product' });
+        Product.find({ _id: req.params.id }).count((err, count) => {
+            if (!err && count) {
+                User.update(
+                  { _id: req.userId }, 
+                        { $addToSet:
+                        { cart: cartObj }
+                    }, function(err, result) {
+                        if (!err) {
+                            res.json({ result: 'product added' });
+                        } else
+                            res.json(err);
+                });
+            } else
+                res.status(404).json(err ? err : { result: 'sorry, no such product' });
+        });
     } else
         res.status(403).json({ result: 'user is not authenticated' });
 }); 
@@ -203,7 +208,7 @@ router.post('/showcart', function(req, res, next) {
     console.log('cart id',req.userId);
     if (req.userId) {
         User.findOne({ _id: req.userId }).
-        populate({ path: 'cart' }).
+        populate({ path: 'cart.productId' }).
         exec(function(err, result) {
             if (!err) {
                 console.log('user cart', result.cart);
@@ -220,14 +225,14 @@ router.post('/showcart', function(req, res, next) {
 
 //****************************Remove product from Cart*************************************//
 // pullAll
-router.post('/removefromcart/:id', function(req, res, next) {
+router.delete('/removefromcart/:id', function(req, res, next) {
     console.log('rrrrrrrrrrr',req.userId);
     console.log('pppppppp',req.params.id);
     if (req.userId) {
         console.log('rrrrrrrrrrr',req.userId);
         User.updateOne(
             { _id: req.userId }, 
-            { $pullAll: { cart: [req.params.id] } },
+            { $pull: { cart: {productId:req.params.id} } },
             function(err, result) {
                 if (!err) {
                     console.log('ressssssssssss',result);
