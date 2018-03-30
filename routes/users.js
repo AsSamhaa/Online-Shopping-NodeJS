@@ -2,15 +2,16 @@ var express = require('express');
 var fs = require("fs");
 var User = require('../models/user');
 var Seller = require('../models/seller');
+var Product = require('../models/product');
 
 var router = express.Router();
 
- 
+// router.use((req, res, next) => {
+//     req.userId = '5ab80499821daa065d66ea0f';
+//     next();
+// });
 
 // get user info
-/*!!!!!!!!!!!!!!!!!!!!!!!!
- * req.userId expected
-*/
 router.get('/', function(req, res, next) {
     if (req.userId) {
     	User.find({ _id: req.userId }, { password: 0 }, function(err, result) {
@@ -87,7 +88,9 @@ router.post('/edit', function(req, res, next) {
         var userObj = {}
         var validationResult = validator.isAlpha(req.body.name) &&
             validator.isEmail(req.body.email) &&
-            validator.isLength(req.body.password, { min: 8 });
+            (req.body.password ?
+                validator.isLength(req.body.password, { min: 8 }) :
+                true);
 
         if (validationResult) {
             userObj.name = req.body.name;
@@ -114,6 +117,50 @@ router.post('/edit', function(req, res, next) {
         res.status(403).json({ result: 'user is not authenticated' });
 });
 
+// edit seller info
+router.post('/edit', function(req, res, next) {
+    if (req.userId) {
+        var sellerObj = {}
+        var validationResult = validator.isAlpha(req.body.name) &&
+            validator.isEmail(req.body.email) &&
+            (req.body.password ?
+                validator.isLength(req.body.password, { min: 8 }) :
+                true) &&
+            (req.body.nationalId ?
+                validator.matches(req.body.nationalId, new RegExp(
+                '(2|3)[0-9][1-9][0-1][1-9][0-3][1-9]' +
+                '(01|02|03|04|11|12|13|14|15|16|17|18|19|21|' +
+                '22|23|24|25|26|27|28|29|31|32|33|34|35|88)\\d\\d\\d\\d\\d')) :
+                true);
+
+        if (validationResult) {
+            sellerObj.name = req.body.name;
+            sellerObj.email = req.body.email;
+            if (req.body.password) {
+                sellerObj.password = req.body.password;
+            }
+            if (req.body.nationalId) {
+                sellerObj.nationalId = req.body.nationalId;
+            }
+            if (req.body.image) {
+                sellerObj.image = req.body.image;
+            }
+            Seller.update(
+                { _id: req.userId },
+                { $set: sellerObj },
+                function(err, result) {
+                    if (!err) {
+                        res.json({ result: 'seller edited' });
+                    } else
+                        res.status(400).json(err);
+            });
+        } else {
+            res.status(400).json(err);
+        }
+    } else
+        res.status(403).json({ result: 'user is not authenticated' });
+});
+
 // delete user
 router.get('/delete', function(req, res, next) {
     if (req.userId) {
@@ -128,32 +175,42 @@ router.get('/delete', function(req, res, next) {
 });
 
 //*********************************add To Cart***********************************//
+// need to set amount along with product
 router.put('/addtocart/:id', function(req, res, next) {
-    console.log('userid',req.userId);
+    console.log('userid', req.userId);
     if (req.userId) {
-        User.update(
-            {_id:req.userId}, 
-            {$addToSet: {cart:req.params.id}},function (err, result) {
-            if(!err){
-                res.json(result);
-            }else{
-                 res.json(err); 
-            }
-        })
-    }else
+        if (Product.find({ _id: req.userId }).count() == 1) {
+            User.update(
+                { _id: req.userId }, 
+                { $addToSet:
+                    { cart: req.params.id }
+                }, function(err, result) {
+                    if (!err) {
+                        res.json({ result: result });
+                    } else
+                        res.json(err);
+            });
+        } else
+            res.status(404).json({ result: 'sorry, no such product' });
+    } else
         res.status(403).json({ result: 'user is not authenticated' });
 }); 
 //****************************Show Cart***************************************//
-router.post('/showcart',function(req, res, next) {
+router.get('/showcart', function(req, res, next) {
     // console.log('cart id',req.userId);
-    User.findOne({_id:req.userId}).populate({path:'cart'}).exec(function(err,result) {
-        if(!err){
-            console.log('user cart',result.cart);
-            res.json(result);  
-        }else {
-            res.json(err);
-        }
-    });
+    if (req.userId) {
+        User.findOne({ _id: req.userId }).
+        populate({ path: 'cart' }).
+        exec(function(err, result) {
+            if (!err) {
+                console.log('user cart', result.cart);
+                res.json({ result: result });  
+            } else {
+                res.status(400).json(err);
+            }
+        });
+    } else
+        res.status(403).json({ result: 'user is not authenticated' });
 });
 
 
@@ -164,29 +221,31 @@ router.post('/removefromcart/:id', function(req, res, next) {
     console.log('pppppppp',req.params.id);
     if (req.userId) {
         console.log('rrrrrrrrrrr',req.userId);
-        User.update(
-            {_id:req.userId}, 
-            {$pullAll: {cart:[req.params.id]}},function (err, result) {
-            if(!err){
-                console.log('ressssssssssss',result);
-                res.json(result);
-            }else{
-                 res.json(err); 
-            }
+        User.updateOne(
+            { _id: req.userId }, 
+            { $pullAll: { cart: [req.params.id] } },
+            function(err, result) {
+                if (!err) {
+                    console.log('ressssssssssss',result);
+                    res.json({ result: result });
+                } else {
+                    res.status(400).json(err); 
+                }
         })
-    }else
+    } else
         res.status(403).json({ result: 'user is not authenticated' });
 });
 //********************************Clear Cart ***********************************************//
 router.delete('/clearcart', function(req, res, next) {
     if (req.userId) {
         User.update(
-            {_id:req.userId}, 
-            {$pull:{cart:{$nin:[]}}},function (err, result) {
-            if(!err){
-                res.json(result);
-            }else{
-                 res.json(err); 
+            { _id: req.userId }, 
+            { $pull: { cart: { $nin: [] } } },
+            function (err, result) {
+            if (!err) {
+                res.json({ result: result });
+            } else {
+                res.status(400).json(err); 
             }
         })
     }else
