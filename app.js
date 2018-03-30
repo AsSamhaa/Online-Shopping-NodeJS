@@ -15,7 +15,7 @@ var users = require('./routes/users');
 var categories = require('./routes/categories');
 var orders = require('./routes/orders');
 var login = require('./routes/login');
-
+var forgetpassword=require('./routes/forgetpassword');
 
 // //**********************************restful api**********************************************************/
 
@@ -54,7 +54,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(auth);
 // app.use('/', index);
+
 app.use('/login', login) ;
+app.use('/forgetpassword', forgetpassword) ;
 app.use('/socialmedia', socialmedia);
 app.use('/products', products);
 app.use('/users', users);
