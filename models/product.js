@@ -27,5 +27,14 @@ var productSchema = new Schema({
   ratings: [rateSchema]
 });
 
+productSchema.pre('validate', function(next) {
+  if (this.price <= 0) this.price = 1;
+  if (this.amountAvailable <= 0) this.amountAvailable = 1;
+  if (this.description.length <= 0) this.amountAvailable = 1;
+  this.sumOfRates = 0;
+  this.ratesCounter = 0;
+  next();
+})
+
 // Register ...
 module.exports = mongoose.model("Product", productSchema);
