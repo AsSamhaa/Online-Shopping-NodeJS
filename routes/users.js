@@ -258,8 +258,22 @@ router.delete('/clearcart', function(req, res, next) {
     }else
         res.status(403).json({ result: 'user is not authenticated' });
 });
-
-
+//********************************edit cart************************************************//
+router.put('/editcart', function(req, res, next) {
+    if (req.userId) {
+        User.update(
+            { _id: req.userId }, 
+            { $set: { cart: req.body.cart }},
+            function (err, result) {
+            if (!err) {
+                res.json({ result: result });
+            } else {
+                res.status(400).json(err); 
+            }
+        })
+    }else
+        res.status(403).json({ result: 'user is not authenticated' });
+});
 
 
 module.exports = router;
