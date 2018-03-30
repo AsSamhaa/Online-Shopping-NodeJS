@@ -13,7 +13,7 @@ var userSchema = new Schema({
   socialId: String,
   accessToken: String,
   revProductId: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
-  cart: [{ type: Schema.Types.ObjectId, ref: 'Product' }]
+  cart: [{ productId:{type: Schema.Types.ObjectId, ref: 'Product'}, quantity:Number }]
 });
 
 // Register ...

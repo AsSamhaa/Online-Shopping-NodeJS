@@ -17,7 +17,7 @@ var orders = require('./routes/orders');
 var login = require('./routes/login');
 var forgetpassword=require('./routes/forgetpassword');
 
-// //**********************************restful api**********************************************************/
+//**********************************restful api**********************************************************/
 
 //connect with database using mongoose
 mongoose.connect("mongodb://localhost:27017/souq");
@@ -32,10 +32,10 @@ var upload = multer({ dest: 'public/images/' });
 var app = express();
 
 app.use(function(req,resp,next){
-  resp.header("Access-Control-Allow-Origin","*");
-  resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,email,password,X-ACCESS_TOKEN , Access-Control-Allow-Origin ,  Origin , x-requested-with ");
-  resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE"),
-  next();
+    resp.header("Access-Control-Allow-Origin","*");
+    resp.header("Access-Control-Allow-Headers","Content-Type,Authorization,email,password,X-ACCESS_TOKEN , Access-Control-Allow-Origin ,  Origin , x-requested-with ");
+    resp.header("Access-Control-Allow-Methods","GET,POST,PUT,DELETE"),
+    next();
 });
 
 app.use(bodyParser.json({limit:'5mb'}));
@@ -64,28 +64,23 @@ app.use('/categories', categories);
 app.use('/orders', orders);
 
 
-
-
-
-
-
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
 });
 
 
 // error handler
 app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
 });
 
 module.exports = app;
