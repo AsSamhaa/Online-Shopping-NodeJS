@@ -2,9 +2,12 @@ var express = require('express');
 var Order = require('../models/order');
 var Product = require('../models/product');
 var User = require('../models/user');
+var mongoose = require('mongoose');
+var fawn = require('fawn');
+
 
 var router = express.Router();
-
+fawn.init(mongoose);
 
 
 //*******************************Show Seller Orders ****************************//
@@ -63,57 +66,191 @@ router.get('/:id?', function(req, res, next) {
 }); 
 //****************************** add order *************************************//
 // just for testing 
+
+// task.update("Accounts", {firstName: "Broke", lastName: "Ass"}, {$inc: {balance: -20}})
+// var Cars = mongoose.model("cars", new Schema({make: String, year: Number}));
+// var toyota = new Cars({make: "Toyota", year: 2015});
+ 
+// task.save("cars", {make: "Toyota", year: 2015});
+// task.save(Cars, {make: "Toyota", year: 2015});
+// task.save("cars", toyota);
+// task.save(Cars, toyota);
+// task.save(toyota);
 router.use(function(req, res, next) {
     req.userId = '5aba75a79b32c814c57abae2';
-    req.cartArray =[{productId:"5abd4019c938f32b83d9bd4e",quantity:2},{productId:"5abd4028c938f32b83d9bd4f",quantity:1  }];
+    req.cartArray = [
+    { productId: "5abe5643f600ce7c5e575fcd", quantity: 2 },
+    { productId: "5abe564ef600ce7c5e575fce", quantity: 1 }];
     next();
 });
-
 router.post('/add', function(req, res, next) {
+    var task = fawn.Task();
     if (req.userId) {
-            console.log(req.cartArray.length);
-            console.log("resultabove");
-        // User.findOne({})
-            // for (var i = 0; i < req.cartArray.length; i++) {
-            req.cartArray.forEach((element, index) => {
-                var order = new Order({
-                amount: element.quantity,
-                userId:req.userId,          
-                productId: element.productId,
-                state: 'ordered',
+        User.findOne({ _id: req.userId }, function(err, user) {
+            if (!err && user) {
+                productsArr = [];
+                quantitiesArr = [];
+                // user.cart.forEach((element) => {
+                req.cartArray.forEach((element) => {
+                    productsArr.push(element.productId);
+                    quantitiesArr.push(element.quantity);
                 });
-                order.save(function(err,result){
-                    // console.log(element.amount);
-                    if (!err){
-                    console.log(element.productId);
 
-                    console.log(element.quantity);
-                        Product.update(
-                            { _id: element.productId },
-                            { '$inc': {amountAvailable: -1 * element.quantity }},function(err,result){
-                                     User.update(
-                                        { _id: req.userId }, 
-                                        { $pull: { cart: { $nin: [] } } },
-                                            function (err, result) {
-                                                if (!err) {
-                                                    console.log("Clear Cart")
-                                                        } else {
-                                                            res.status(400).json(err); 
-                                                        }
-                                                })
-                        });
-                    }else {
-                        res.status(403).json(err);
-                    }
-                })
-            })
-        
-            res.json({ result: "added orders -- products amount updated" });
-    }else {
-        res.status(403).json({ result: 'user is not authenticated' });
+                console.log(productsArr);
+                console.log(quantitiesArr);
+                var error = '';
+                productsArr.forEach((product, index) => {
+                    Product.findOne({ _id: productId }, (err, foundProd) => {
+                        if (!err && foundProd.amountAvailable >= quantitiesArr['index']) {
+                            task.save(new Order({
+                                amount: quantitiesArr['quantity'],
+                                userId: req.userId,
+                                productId: product,
+                                state: 'ordered',
+                            }));
+                            task.update(
+                                'Product',
+                                { _id: product.productId },
+                                { $inc: { amountAvailable: -1 * quantitiesArr['index'] } });
+                        } else
+                            error = err.message ?
+                            err.message :
+                            'order of more than available of ' + foundProduct.name;
+                    });
+                });
+                if (error.length != 0) {
+                    task.run(/*{ useMongoose: true }*/).
+                    then(function(results) {
+                        User.update(
+                            { _id: req.userId }, 
+                            { $pull: { cart: { $nin: [] } } },
+                            (err, result) => {
+                                if (!err) {
+                                    res.json({ results: 'success' });
+                                } else
+                                    res.status(500).json(
+                                        { error: 'order added, but can not empty cart' });
+                            });
+                    }).catch(function(err) {
+                        res.status(400).json({ error: 'can not add commit order' });
+                    });
+                } else
+                    res.status(400).json({ error: error });
+            } else
+                res.status(400).json({ error: err.message ?
+                    err.message : 'seller accounts can not conduct purchases' });
+        });
     }
 });
 
+
+
+    //             user.cart.forEach((element, index/*, failedorders*/) => {
+    //                 Product.findOne({ _id: element.productId }, function(err, product) {
+    //                     if (!err) {
+    //                         console.log(element);
+    //                         if (element.quantity <= product.amountAvailable) {
+    //                             var order = new Order({
+    //                                 amount: element.quantity,
+    //                                 userId:req.userId,          
+    //                                 productId: element.productId,
+    //                                 state: 'ordered',
+    //                             });
+    //                             task.save(new Order({
+    //                                 amount: element.quantity,
+    //                                 userId:req.userId,          
+    //                                 productId: element.productId,
+    //                                 state: 'ordered',                                    
+    //                             }));
+    //                             // task.save(order);
+    //                             task.update(Product,{ _id: element.productId },
+    //                                     { '$inc': {amountAvailable: -1 * element.quantity }});
+    //                             task.update(User, { _id: req.userId }, 
+    //                                             { $pull: { cart: { $nin: [] } } });
+    //                         }
+    //                     }
+    //                 });
+    //             });
+    //         } });
+    //         task.run({useMongoose: true}).then(function(results){
+    //             console.log("sucess");
+    //             res.json(results);
+    //         }).catch(function(err){
+    //             console.log("fail") 
+    //             res.json(err);
+
+    //         });
+    // } else {
+        
+    // }
+// }});
+
+
+
+//                     }}else {
+//                             res.status(403).json(err);
+//                     }
+
+
+//                 })
+//             })
+// task.run({useMongoose: true})
+//   .then(function(){
+
+//                             order.save(function(err,result){
+//                             if (!err){
+//                                 console.log(element.productId);
+//                                 console.log(element.quantity);
+//                                 Product.updateOne(
+//                                     { _id: element.productId },
+//                                     { '$inc': {amountAvailable: -1 * element.quantity }},function(err,result){
+//                                         User.update(
+//                                             { _id: req.userId }, 
+//                                             { $pull: { cart: { $nin: [] } } },
+//                                                 function (err, result) {
+//                                                     if (!err) {
+//                                                         console.log("Clear Cart");
+//                                                     console.log("success");
+//                                                         key1='productName';
+//                                                         key2='productAmount';
+//                                                         value1=result.name;
+//                                                         value2=result.amountAvailable;
+//                                                         successorders.push({key1:value1,key2:value2})
+//                                                             } else {
+//                                                                 res.status(400).json(err); 
+//                                                             }
+//                                                 })
+//                                 });
+//                             }else {
+//                                 res.status(403).json(err);
+//                             }
+//                         })
+//                     }else{
+//                         // res.json(result:"requested amount above amount Available");
+//                         console.log("fail");
+//                         console.log(index);
+//                         console.log(result.name);
+//                         console.log(result.amountAvailable);    
+//                         value1=result.name;
+//                         value2=result.amountAvailable;
+//                         failedorders[index]={productName:value1,productAmount:value2}
+//                                 // failedorders.push({key1:value1,key2:value2});
+//                                 console.log(failedorders);
+//                     }
+//                 }else{
+//                     // res.json(error:"error");
+//                     console.log(err)
+//                 }
+//             })
+//         })
+            
+//             console.log(successorders,failedorders)
+//             res.json({"successorders":successorders,"failedorders":failedorders})
+//       });  
+//     }else {
+//         res.status(403).json({ result: 'user is not authenticated' });
+//     }
+// });
 //**********************   edit order state  ************************************//
 router.post('/edit/:id', function(req, res, next) {
     var id = req.params.id;
