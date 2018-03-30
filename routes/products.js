@@ -52,31 +52,33 @@ router.get('/get/:id', function(req, res, next) {
                     if (!err) {
                         res.json({ result: modProduct });
                     } else
-                    res.status(400).json(err);
+                    res.status(400).json({ error: err.message });
                 });
             } else {
-                res.status(404).json({ result: 'product is not found' });
+                res.status(404).json({ error: 'product is not found' });
             }
         } else
-            res.status(400).json(err);
+            res.status(400).json({ error: err.message });
     });
 });
 
-// get filtered products
 /*
- * expected object holding filters
-    {
-        subcatIds: [],
-        min: 3352,
-        max: 3535
+    dummyObj = {
+        search: 'gsgsdgsd',
+        subcatsIds: [],
+        min: 343,
+        max: 434
     }
 */
+// get filtered products
 router.post('/get', function(req, res, next) {
-    filterOpts = {}
-    filterOpts.price = {}
+    filterOpts = {};
+    filterOpts.price = {};
     filterOpts.price.$gte = req.body.min ? req.body.min : 0;
+    if (req.body.search)
+        filterOpts.name = { $regex: req.params.regex };
     if (req.body.subcatIds.length != 0)
-        filterOpts.subcatId = { $in: req.body.subcatIds }
+        filterOpts.subcatId = { $in: req.body.subcatIds };
     if (req.body.max)
         filterOpts.price.$lte = req.body.max;
     Product.find(filterOpts, { orderId: 0, ratings: 0 }, function(err, products) {
@@ -86,13 +88,13 @@ router.post('/get', function(req, res, next) {
                     if (!err) {
                         res.json({ result: modProducts });
                     } else
-                        res.status(400).json(err);
+                        res.status(400).json({ error: err.message });
                 });
             } else {
-                res.status(404).json({ result: 'products are not found' });
+                res.status(404).json({ error: 'not found' });
             }
         } else
-        res.status(400).json(err);
+            res.status(400).json({ error: err.message });
     });
 });
 
@@ -118,43 +120,45 @@ router.post('/add', function(req, res, next) {
             }
         });
     } else
-        res.status(403).json({ error: 'You don\'t have enough permissions'});
+        res.status(403).json({ error: 'not authorized'});
 });
 
 /************************* edit product info **************************8*/
 // id in the url should be in the body as hidden input
 router.post('/edit/:id', function(req, res, next) {
-    Product.update(
-        { _id: req.params.id },
-        { $set: {
-            name: req.body.name,
-            price: req.body.price,
-            amountAvailable: req.body.amountAvailable,
-            description: req.body.description,
-            image: req.body.image
-        } },
-        function(err, result) {
-            if (!err) {
-                res.json({ result: "product edited" });
-            } else {
-                console.log(err)
-                res.json({ error: err.message });
-            }
-    });
+    if (req.isSeller) {
+        Product.update(
+            { _id: req.params.id },
+            { $set: {
+                name: req.body.name,
+                price: req.body.price,
+                amountAvailable: req.body.amountAvailable,
+                description: req.body.description,
+                image: req.body.image
+            } },
+            function(err, result) {
+                if (!err) {
+                    res.json({ result: "product edited" });
+                } else
+                    res.status(400).json({ error: err.message });
+        });
+    } else
+        res.status(403).json({ error: 'not authorized' });
 });
 
 // to rate a product
-router.post('/rate/:id', function (req, res, next) {
-    Product.findOne({
-            _id: req.params.id
-        },
-        function (err, product) {
+router.post('/rate/:id', function(req, res, next) {
+    // to check user rating not to fall out of range
+    if (req.userId) {
+        req.body.rate = (req.body.rate >= 0 && req.body.rate <= 5) ? req.body.rate : 0;
+        Product.findOne(
+        { _id: req.params.id },
+        function(err, product) {
             if (!err) {
                 if (product) {
                     var prevRating = false;
                     for (rating of product.ratings) {
                         if (rating.userId == req.userId) {
-                            // exctracted the user rating and saved to prevRating
                             prevRating = rating;
                             break;
                         }
@@ -188,18 +192,18 @@ router.post('/rate/:id', function (req, res, next) {
                         if (!err) {
                             res.json({ result: 'product rated' });
                         } else {
-                            res.status(500).json(err);
+                            res.status(400).json({ error: err.message });
                         }
                     });
                 } else {
-                    res.status(404).json({
-                        result: 'product not found'
-                    });
+                    res.status(404).json({ error: 'product not found' });
                 }
             } else {
-                res.status(404).json(err);
+                res.status(404).json({ error: err.message });
             }
         });
+    } else
+        res.status(403).json({ error: 'not authenticated' });
 });
 
 // to get trending products
@@ -230,87 +234,32 @@ router.get('/trend', function(req, res, next) {
                     result: products
                 });
             } else {
-                res.status(404).json(err);
+                res.status(404).json({ error: err.message });
             }
         });
 });
 
 /************************* delete product ********************************/
-router.get('/delete/:id?', function (req, res, next) {
-    if (req.params.id) {
-        Product.remove({
-            _id: req.params.id
-        }, function (err, data) {
-            if (!err) {
-                res.json({
-                    result: "deleted"
-                });
-            } else {
-                res.status(404).json({
-                    result: 'Not found'
-                });
-            }
-        });
-    } else {
-        res.status(404).json({
-            result: 'Not found'
-        });
-    }
+router.get('/delete/:id?', function(req, res, next) {
+    if (req.isSeller) {
+        if (req.params.id) {
+            Product.findOne({ _id: req.params.id, sellerId: req.userId }, (err, product) => {
+                if (!err && product) {
+                    Product.remove({ _id: req.params.id }, function(err, data) {
+                        if (!err) {
+                            res.json({ result: 'deleted' });
+                        } else
+                            res.status(404).json({ error: 'Not found'});
+                    });
+                } else
+                    res.status(404).json({ error: err.message ? err.message : 'not found' });
+            })
+        } else
+            res.status(403).json({ error: 'bad request parameters'});
+    } else
+        res.status(403).json({ error: 'Not Authenticated'});
 });
 
-//*********text search for specific product ************************//
-router.get('/search/:search/:page', function (req, res, next) {
-    var prodPerPage = 2;
-    Product.find({
-        name: {
-            $regex: req.params.search
-        }
-    }).skip((req.params.page - 1) * prodPerPage).limit(prodPerPage).exec(function (err, result) {
-        if (!err) {
-            Product.find({
-                name: {
-                    $regex: req.params.search
-                }
-            }).count().exec(function (err, count) {
-                res.json({
-                    products: result,
-                    pages: Math.ceil(count / prodPerPage)
-                })
-            })
-        } else {
-            res.json(err);
-        }
-    })
-});
-router.get('/search/:regex?', function(req, res, next) {
-    if(req.params.regex){
-        var sellerorders=[];
-        Product.find({name :{$regex:req.params.regex}},function(err, result){
-            if(!err){
-                sellerorders.push(result);
-                    Category.find({categoryName :{$regex:req.params.regex}},function(err, result){
-                         if(!err){
-                             sellerorders.push(result);
-                         }else {
-                               res.json(err);
-                        }
-                    })
-                        Subcategory.find({subcatName :{$regex:req.params.regex}},function(err, result){
-                            if(!err){
-                                sellerorders.push(result);
-                            }else {
-                                res.json(err);
-                            }
-                        res.json(sellerorders);
-                        })
-    
-            }else {
-                res.json(err);
-            }
-        })
-    }else
-        res.status(404).json({result:'Not found'});
-});
 //******************************Seller Shelf ***************************//
 router.get('/stock/:userId/:page', function (req, res, next) {
     // sellerId = req.params.id;

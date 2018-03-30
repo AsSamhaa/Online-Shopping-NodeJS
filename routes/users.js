@@ -48,7 +48,7 @@ router.post('/add', function(req, res, next) {
                     res.status(400).json(err);
             });
         } else {
-           res.status(400).json(err);
+           res.status(400).json({ error: 'email is already used' });
         }
 });
 
@@ -198,15 +198,15 @@ router.put('/addtocart/:id', function(req, res, next) {
                                 }
                             } },
                             { updateOne: {
-                                    filter: { _id: req.userId },
-                                    update: {
-                                        $addToSet: {
-                                            cart: {
-                                                productId: req.params.id,
-                                                quantity: prevCart ? prevCart.quantity + 1 : 1
-                                            }
+                                filter: { _id: req.userId },
+                                update: {
+                                    $addToSet: {
+                                        cart: {
+                                            productId: req.params.id,
+                                            quantity: prevCart ? prevCart.quantity + 1 : 1
                                         }
                                     }
+                                }
                             } }
                         ]).then((err, result) => {
                             if (!err) {
@@ -220,7 +220,9 @@ router.put('/addtocart/:id', function(req, res, next) {
                     }
                 });
             } else
-                res.status(404).json(err ? err : { result: 'sorry, no such product' });
+                res.status(404).json(err.message ?
+                    { error: err.message } :
+                    { result: 'sorry, no such product' });
         });
     } else
         res.status(403).json({ result: 'user is not authenticated' });
