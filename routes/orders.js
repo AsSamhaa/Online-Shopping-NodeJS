@@ -77,15 +77,15 @@ router.get('/:id?', function(req, res, next) {
 // task.save(Cars, toyota);
 // task.save(toyota);
 router.use(function(req, res, next) {
-    req.userId = '5aba75a79b32c814c57abae2';
-    req.cartArray = [
-    { productId: "5abe5643f600ce7c5e575fcd", quantity: 2 },
-    { productId: "5abe564ef600ce7c5e575fce", quantity: 1 }];
+    req.userId = '5ab80499821daa065d66ea0f';
+    // req.cartArray = [
+    // { productId: "5abe5643f600ce7c5e575fcd", quantity: 2 },
+    // { productId: "5abe564ef600ce7c5e575fce", quantity: 1 }];
     next();
 });
 router.post('/add', function(req, res, next) {
     var task = fawn.Task();
-    if (req.userId) {
+    if (req.userId && !req.isSeller) {
         User.findOne({ _id: req.userId }, function(err, user) {
             if (!err && user) {
                 productsArr = [];
