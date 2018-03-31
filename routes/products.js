@@ -101,16 +101,19 @@ router.post('/get', function(req, res, next) {
 /************************ add product info ************************/
 // validation is conducted via hooks in the model file
 router.post('/add', function(req, res, next) {
+    console.log('seller: ', req.isSeller);    
+    console.log('hello: ', req.isSeller);  
+    console.log(req.body);  
     if (req.isSeller) {
-        console.log(req.body.name);
+        console.log(req.body.product.name);
         var product = new Product({
-            name: req.body.name,
-            price: req.body.price,
-            amountAvailable: req.body.amountAvailable,
-            description: req.body.description ? req.body.description : '',
-            image: req.body.image,
+            name: req.body.product.name,
+            price: req.body.product.price,
+            amountAvailable: req.body.product.amountAvailable,
+            description: req.body.product.description ? req.body.product.description : '',
+            image: req.body.product.image,
             sellerId: req.userId,
-            subcatId: req.body.subcategory,
+            subcatId: req.body.product.subcategory,
         });
         product.save(function (err, result) {
             if (!err) {
@@ -119,8 +122,10 @@ router.post('/add', function(req, res, next) {
                 res.status(403).json({ error: err.message });
             }
         });
-    } else
+    } else {
+        connsole.log('not authorized');
         res.status(403).json({ error: 'not authorized'});
+    }
 });
 
 /************************* edit product info **************************8*/
@@ -130,11 +135,11 @@ router.post('/edit/:id', function(req, res, next) {
         Product.update(
             { _id: req.params.id },
             { $set: {
-                name: req.body.name,
-                price: req.body.price,
-                amountAvailable: req.body.amountAvailable,
-                description: req.body.description,
-                image: req.body.image
+                name: req.body.product.name,
+                price: req.body.product.price,
+                amountAvailable: req.body.product.amountAvailable,
+                description: req.body.product.description,
+                image: req.body.product.image
             } },
             function(err, result) {
                 if (!err) {

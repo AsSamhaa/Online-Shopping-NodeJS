@@ -38,7 +38,7 @@ productSchema.pre('update', function(next) {
         next();
 });
 
-productSchema.pre('save', function(err, next) {
+productSchema.pre('save', function(next) {
     if (this.price <= 0.5) this.price = 0.5;
     if (this.amountAvailable < 0) this.amountAvailable = 0;
     if (this.description.length == 0) this.description = 'no description available';
