@@ -3,12 +3,13 @@ var Order = require('../models/order');
 var Product = require('../models/product');
 var User = require('../models/user');
 var mongoose = require('mongoose');
-var fawn = require('fawn');
+var Transaction = require('mongoose-transactions');
 
+
+// var fawn = require('fawn');
+// fawn.init(mongoose);
 
 var router = express.Router();
-fawn.init(mongoose);
-
 
 //*******************************Show Seller Orders ****************************//
 router.get('/sellerorders/:id?/:page?',function(req, res, next) {
@@ -56,7 +57,7 @@ router.get('/:id?', function(req, res, next) {
         }); 
     } else {
         Order.find({}).populate({path:"productId"}).exec(function(err,result) {
-                    if(!err){ 
+            if(!err){ 
                 res.json(result);
             }else {
                 res.json(err);
@@ -65,80 +66,61 @@ router.get('/:id?', function(req, res, next) {
     }
 }); 
 //****************************** add order *************************************//
-// just for testing 
-
-// task.update("Accounts", {firstName: "Broke", lastName: "Ass"}, {$inc: {balance: -20}})
-// var Cars = mongoose.model("cars", new Schema({make: String, year: Number}));
-// var toyota = new Cars({make: "Toyota", year: 2015});
- 
-// task.save("cars", {make: "Toyota", year: 2015});
-// task.save(Cars, {make: "Toyota", year: 2015});
-// task.save("cars", toyota);
-// task.save(Cars, toyota);
-// task.save(toyota);
-router.use(function(req, res, next) {
-    req.userId = '5ab80499821daa065d66ea0f';
-    // req.cartArray = [
-    // { productId: "5abe5643f600ce7c5e575fcd", quantity: 2 },
-    // { productId: "5abe564ef600ce7c5e575fce", quantity: 1 }];
-    next();
-});
 router.post('/add', function(req, res, next) {
-    var task = fawn.Task();
+    // var task = fawn.Task();
+    const transaction = new Transaction();
     if (req.userId && !req.isSeller) {
         User.findOne({ _id: req.userId }, function(err, user) {
             if (!err && user) {
                 productsArr = [];
                 quantitiesArr = [];
-                // user.cart.forEach((element) => {
-                req.cartArray.forEach((element) => {
+                user.cart.forEach((element) => {
                     productsArr.push(element.productId);
                     quantitiesArr.push(element.quantity);
                 });
-
                 console.log(productsArr);
                 console.log(quantitiesArr);
                 var error = '';
-                productsArr.forEach((product, index) => {
-                    Product.findOne({ _id: productId }, (err, foundProd) => {
-                        if (!err && foundProd.amountAvailable >= quantitiesArr['index']) {
-                            task.save(new Order({
-                                amount: quantitiesArr['quantity'],
-                                userId: req.userId,
-                                productId: product,
-                                state: 'ordered',
-                            }));
-                            task.update(
-                                'Product',
-                                { _id: product.productId },
-                                { $inc: { amountAvailable: -1 * quantitiesArr['index'] } });
-                        } else
-                            error = err.message ?
-                            err.message :
-                            'order of more than available of ' + foundProduct.name;
+                try {
+                    productsArr.forEach((product, index) => {
+                        Product.findOne({ _id: product }, (err, foundProd) => {
+                            if (!err && foundProd.amountAvailable >= quantitiesArr[index]) {
+                                // task.save('Order', new Order({
+                                transaction.insert(
+                                    'Order',
+                                    { amount: quantitiesArr[index],
+                                        userId: req.userId,
+                                        productId: product,
+                                        state: 'ordered',
+                                });
+                                transaction.update(
+                                    'Product',
+                                    { _id: product },
+                                    { $inc: { amountAvailable: -1 * quantitiesArr[index] } });
+                            } else
+                                error = err ?
+                                err.message :
+                                'order of more than available of ' + foundProduct.name;
+                        });
                     });
-                });
-                if (error.length != 0) {
-                    task.run(/*{ useMongoose: true }*/).
-                    then(function(results) {
-                        User.update(
+                    if (error.length == 0) {
+                        transaction.update(
+                            'User',
                             { _id: req.userId }, 
-                            { $pull: { cart: { $nin: [] } } },
-                            (err, result) => {
-                                if (!err) {
-                                    res.json({ results: 'success' });
-                                } else
-                                    res.status(500).json(
-                                        { error: 'order added, but can not empty cart' });
-                            });
-                    }).catch(function(err) {
-                        res.status(400).json({ error: 'can not add commit order' });
-                    });
-                } else
+                            { $pull: { cart: { $nin: [] } } });
+                        transaction.run(/*{ useMongoose: true }*/);
+                        res.json({ result: 'success' });
+                } catch (error) {
+                    transaction.rollback().catch(console.error);
+                    transaction.clean();
                     res.status(400).json({ error: error });
+                }
             } else
-                res.status(400).json({ error: err.message ?
-                    err.message : 'seller accounts can not conduct purchases' });
+                res.status(400).json({ error :
+                    (err.message ?
+                        err.message :
+                        'seller accounts can not conduct purchases')});
+            }
         });
     }
 });
