@@ -71,22 +71,31 @@ router.get('/get/:id', function(req, res, next) {
     }
 */
 // get filtered products
-router.post('/get', function(req, res, next) {
+router.post('/get/:page', function(req, res, next) {
+    prodPerPage=4
     filterOpts = {};
     filterOpts.price = {};
     filterOpts.price.$gte = req.body.min ? req.body.min : 0;
     if (req.body.search)
-        filterOpts.name = { $regex: req.body.search };
+        filterOpts.name = { $regex: req.body.search, $options : 'is'};
     if (req.body.subcatIds.length != 0)
         filterOpts.subcatId = { $in: req.body.subcatIds };
     if (req.body.max)
         filterOpts.price.$lte = req.body.max;
-    Product.find(filterOpts, { orderId: 0, ratings: 0 }, function(err, products) {
+    Product.find(filterOpts, { orderId: 0, ratings: 0 }).
+    skip(((req.params.page ? req.params.page : 1) - 1) * prodPerPage).
+    limit(prodPerPage).
+    exec(function(err, products) {
         if (!err) {
             if (products) {
                 Seller.populate(products, { path: 'sellerId' }, (err, modProducts) => {
                     if (!err) {
-                        res.json({ result: modProducts });
+                        Product.find(filterOpts, { orderId: 0, ratings: 0 }).count().exec(function (err, count) {
+                            res.json({
+                                result: modProducts,
+                                pages: Math.ceil(count / prodPerPage)
+                            });
+                        })
                     } else
                         res.status(400).json({ error: err.message });
                 });

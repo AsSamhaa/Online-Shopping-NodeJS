@@ -184,12 +184,15 @@ router.put('/addtocart/:id', function(req, res, next) {
                 User.findOne({ _id: req.userId }, (err, user) => {
                     if (!err) {
                         var prevCart = false;
+                    if (user.cart) {
                         for (element of user.cart) {
                             if (element.productId == req.params.id) {
                                 prevCart = element;
                                 break;
                             }
                         }
+                    }
+                        
                         User.bulkWrite([
                             { updateOne: {
                                 filter: { _id: req.userId },

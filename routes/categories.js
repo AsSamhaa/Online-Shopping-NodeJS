@@ -97,7 +97,7 @@ router.get('/:id/showsubs',function(req,res,next){
 */
 router.get('/subcat/:id/:page?', function(req, res, next) {
     Subcategory.findOne({ _id: req.params.id }, function(err, subcat) {
-        var prodPerPage = 1;
+        var prodPerPage = 3;
         if (!err && subcat != null) {
             Product.find({ subcatId: req.params.id }).
             skip(((req.params.page ? req.params.page : 1) - 1) * prodPerPage).
@@ -143,7 +143,7 @@ router.get('/warehouse', function(req, res, next) {
 });
 
 router.get('/search/:search/:page', function (req, res, next) {
-    var catPerPage = 2;
+    var catPerPage = 3;
     Category.find({categoryName :{$regex:req.params.search}}).skip((req.params.page - 1) * catPerPage).limit(catPerPage).exec(function (err, result) {
         if (!err) {
             Category.find({
